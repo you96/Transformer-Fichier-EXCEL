@@ -1,0 +1,2781 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Text.RegularExpressions;
+
+using System.Runtime.InteropServices;
+using System.Collections;
+using INI;
+
+using System.IO;
+using System.Xml;
+
+
+
+namespace TransformEXCEL
+{
+    public partial class Form1 : Form
+    {
+        string stylexml = null;
+        string fichierprepare = null;
+        string pathnotapme = null;
+
+        string fileAstyler = null;
+        public Form1()
+        {
+            InitializeComponent();
+            string filePath = "D:\\ptw\\pathinfo.ini";
+            IniFile iniFile = new IniFile(filePath);
+
+            string pathsource = null;
+            string pathxml = null;
+            string pathdestinationdivi = null;
+            string pathdestinationfusion = null;
+            pathsource = iniFile.ReadInivalue("dossier", "pathsource");
+            pathxml = iniFile.ReadInivalue("dossier", "pathxml");
+            pathdestinationdivi = iniFile.ReadInivalue("dossier", "pathdestinationdivi");
+            pathdestinationfusion = iniFile.ReadInivalue("dossier", "pathdestinationfusion");
+            textBox1.Text = pathsource;
+            textBox2.Text = pathxml;
+            textBox3.Text = pathdestinationdivi;
+            textBox5.Text = pathdestinationfusion;
+        }
+        //
+        //// Supprimer typologie dans "D:\\ptw\\Histo.ptw"
+        //
+        private void supprimerTypologie_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open(fichierprepare, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            //Afficher pas les Alerts !!non utiliser avant assurer!!!
+            xlApp.DisplayAlerts = false;
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Worksheet sheetTypologie = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Typologie IFRS");
+            sheetTypologie.Delete();
+
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fonction Remplacement Histo.ptw
+        //
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            string findxo = "+Historique!C**Hist.Preface!D$14";
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Hist.Preface");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            // In the following cases Value2 returns different types                
+            // 1. the range variable points to a single cell                
+            // Value2 returns a object                
+            // 2. the range variable points to many cells                
+            // Value2 returns object[,] 
+            object[,] values = (object[,])range.Formula;
+            
+            //int col = 4;
+            //if (comboBox1.Text == "D") { col = 4; }
+            //if (comboBox1.Text == "F") { col = 6; }
+            //if (comboBox1.Text == "H") { col = 8; }
+            //MessageBox.Show(col.ToString());
+            //---------->  \+Historique\!C\d{2,4}\*Hist.Preface\!D\$14 <-----------------
+            xlApp.DisplayAlerts = false;
+            range.Cells.Replace("SI(Hist.Preface!D$14=0", "SI(0=0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("SI(Hist.Preface!F$14=0", "SI(0=0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("SI(Hist.Preface!H$14=0", "SI(0=0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+            range.Cells.Replace("Historique!C?????~*Hist.Preface!D$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!C????~*Hist.Preface!D$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!C???~*Hist.Preface!D$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!C??~*Hist.Preface!D$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+
+            range.Cells.Replace("Historique!D?????~*Hist.Preface!F$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!D????~*Hist.Preface!F$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!D???~*Hist.Preface!F$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!D??~*Hist.Preface!F$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+
+            range.Cells.Replace("Historique!E?????~*Hist.Preface!H$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!E????~*Hist.Preface!H$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!E???~*Hist.Preface!H$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Historique!E??~*Hist.Preface!H$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+//-----------------------------------------------------Sheet Historique----------------------------
+            Excel.Worksheet xlWorkSheetHis = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range rangeHis = xlWorkSheet.UsedRange;
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// HistoMettreZero Histo1.xls 8000
+        //
+        private void HistoMettreZero_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            int rCnt = 0;
+            int cCnt = 0;
+            int col = 0;
+            rCnt = range.Rows.Count;
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "8000"))
+                {
+                    col = cCnt;
+                    break;
+                }
+            }
+            //MessageBox.Show(col.ToString());
+            //int col = 8;
+            int time1 = System.Environment.TickCount;
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, "-1"))
+                {
+                    //MessageBox.Show(row.ToString());
+                    Excel.Range rangeDelxC = xlWorkSheet.Cells[row, 3] as Excel.Range;
+                    rangeDelxC.Value2 = 0;
+                    Excel.Range rangeDelxD = xlWorkSheet.Cells[row, 4] as Excel.Range;
+                    rangeDelxD.Value2 = 0;
+                    Excel.Range rangeDelxE = xlWorkSheet.Cells[row, 5] as Excel.Range;
+                    rangeDelxE.Value2 = 0;
+                    //rangeDelxE.set_Value(misValue, 0);
+                }
+            }
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + "seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Historique Remplacement Histo2.xls
+        //
+        private void HistoRempl_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Formula;
+
+            //for (int rowCnt = 1; rowCnt <= range.Rows.Count; rowCnt++)
+            //{
+            //    for (int colCnt = 3; colCnt <= 3; colCnt++)
+            //    {
+            //    string value = Convert.ToString(values[rowCnt, colCnt]);
+            //    if (Regex.IsMatch(value, @"C\d{2,4}\*Hist.Preface\!\$D\$14"))
+            //    {
+            //        MessageBox.Show(value);
+            //            Excel.Range rangeremplacer = xlWorkSheet.Cells[rowCnt, colCnt] as Excel.Range;
+            //            //rangeremplacer.Cells.Replace("C??~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            //            rangeremplacer.Cells.Replace("C???~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            //            rangeremplacer.Cells.Replace("C????~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            //        }
+            //    }
+            //}
+
+            xlApp.DisplayAlerts = false;
+
+            range.Cells.Replace("C???~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("C????~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D???~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D????~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E???~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E????~*Hist.Preface!$D$14", "0*Hist.Preface!$D$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+            range.Cells.Replace("C???~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("C????~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D???~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D????~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E???~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E????~*Hist.Preface!$F$14", "0*Hist.Preface!$F$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+            range.Cells.Replace("C???~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("C????~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D???~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("D????~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E???~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("E????~*Hist.Preface!$H$14", "0*Hist.Preface!$H$14", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            //MessageBox.Show("jobs done!");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Historique Au Av Aw Histo3
+        //
+        private void HistoAuAvAw_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Formula;
+
+            range.Cells.Replace("0~*AU??", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("0~*AV??", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("0~*AW??", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+            range.Cells.Replace("AU??~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AV??~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AW??~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AU???~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AV???~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AW???~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AU????~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AV????~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("AW????~*0", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+
+
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            //MessageBox.Show("jobs done!");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Colonne CE mettre à "0" pour les non null 72000 Histo4.xls
+        //
+        private void colCE_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            int rCnt = 0;
+            int cCnt = 0;
+            int col = 0;
+            rCnt = range.Rows.Count;
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "72000"))
+                {
+                    col = cCnt;
+                    break;
+                }
+            }
+
+            int time1 = System.Environment.TickCount;
+
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                //string val = rangeDelx.Value2.ToString();
+                if (value != "")
+                {
+                    //MessageBox.Show(value);
+                    Excel.Range rangeDelx = xlWorkSheet.Cells[row, col] as Excel.Range;
+                    rangeDelx.set_Value(misValue, 0);
+                    if (value == "72000")
+                    {
+                        Excel.Range ce72000 = xlWorkSheet.Cells[row, col] as Excel.Range;
+                        ce72000.set_Value(misValue, "72000");
+                    }
+                }
+            }
+
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + "seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+        }
+        // 
+        //// suppression replacement pour les REF! Histo5.xls
+        //
+        private void supprimerREF_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+            int time1 = System.Environment.TickCount;
+
+            //////////////////////////////////////////////////////////////////////////
+            xlApp.DisplayAlerts = false;
+            range.Cells.Replace("Hist.Preface!$D$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Hist.Preface!$F$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Hist.Preface!$H$14", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("Hist.Calculs!$B$4", "0,001", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            ////////////////////////
+            range.Cells.Replace("$AJ$2=10", "0=10", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("$AJ$2=2", "0=2", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            ////////////////////////
+            range.Cells.Replace("'*Param Sav'!$C$280=0", "0=0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("'*Param Sav'!$C$183=1", "0=1", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            ////////////////////////
+            range.Cells.Replace("$EL$1", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("$EL$2", "1", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("$EL$3", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("$EL$4", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            range.Cells.Replace("$EL$5", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false); 
+            range.Cells.Replace("$EL$7", "0", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            ////////////////////////
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + " seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+        }
+        // 
+        //// Inserer les colonnes correctifs Histo6.xls
+        //
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = xlWorkBook.Worksheets[1] as Excel.Worksheet;
+            Excel.Range range = xlWorkSheet.UsedRange;
+
+            //xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
+
+            Excel.Range rangex1 = xlWorkSheet.Cells[1, 4] as Excel.Range;
+            Excel.Range rangex1c = xlWorkSheet.UsedRange.get_Range("EO1", "EP1") as Excel.Range;
+
+            Excel.Range rangex2 = xlWorkSheet.Cells[1, 5] as Excel.Range;
+            Excel.Range rangex2c = xlWorkSheet.UsedRange.get_Range("EQ1", "ER1") as Excel.Range;
+
+            Excel.Range rangex3 = xlWorkSheet.Cells[1, 6] as Excel.Range;
+            Excel.Range rangex3c = xlWorkSheet.UsedRange.get_Range("ES1", "ET1") as Excel.Range;
+
+
+            rangex1c.EntireColumn.Copy(misValue);
+            //MessageBox.Show(rangex1c.ToString());
+            rangex1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            rangex1c.EntireColumn.Copy(misValue);
+            rangex2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            rangex1c.EntireColumn.Copy(misValue);
+            rangex3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            Excel.Range rangex1cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 4] as Excel.Range;
+            Excel.Range rangex1cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 5] as Excel.Range;
+            Excel.Range rangex2cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 7] as Excel.Range;
+            Excel.Range rangex2cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 8] as Excel.Range;
+            Excel.Range rangex3cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 10] as Excel.Range;
+            Excel.Range rangex3cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 11] as Excel.Range;
+            rangex1cx1.Value2 = "";
+            rangex1cx2.Value2 = "";
+            rangex2cx1.Value2 = "";
+            rangex2cx2.Value2 = "";
+            rangex3cx1.Value2 = "";
+            rangex3cx2.Value2 = "";
+
+            ///////////////////////////////Parcourir tous les cellule ergodiaue////////////////////////////////
+            //string str;
+            //int rCnt = 0;
+            //int cCnt = 0;
+            //for (rCnt = 1; rCnt <= range.Rows.Count; rCnt++)
+            //{
+            //    for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            //    {
+            //        str = (string)(range.Cells[rCnt, cCnt] as Excel.Range).Value2.ToString();
+            //        MessageBox.Show(str);
+            //    }
+            //}
+            ///////////////////////////////fermer EXCEL automatiquement apres modification?//////////////////////
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            //MessageBox.Show("jobs done!");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// supprimer colonne marqué "-1" Histo6.xls 944000
+        //
+        private void supprimercol_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            int time1 = System.Environment.TickCount;
+            ////////////////////////////////////////944000//////////////////////
+            int rCnt = 0;
+            int cCnt = 0;
+            int row944000 = 0;
+
+            cCnt = range.Columns.Count;
+            for (rCnt = 1; rCnt <= range.Rows.Count; rCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "944000"))
+                {
+                    row944000 = rCnt;
+                    break;
+                }
+            }
+
+            for (int col = 1; col <= xlWorkSheet.UsedRange.Columns.Count; col++)
+            {
+                string value = Convert.ToString(values[row944000, col]);
+                if (Regex.Equals(value, "-1"))
+                {
+                    Excel.Range rangeDelx = xlWorkSheet.Cells[row944000, col] as Excel.Range;
+                    rangeDelx.EntireColumn.Delete(Excel.XlDeleteShiftDirection.xlShiftToLeft);
+
+                    range = xlWorkSheet.UsedRange;
+                    values = (object[,])range.Value2;
+                    col--;
+                }
+            }
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + " seconds used");
+
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// supprimer ligne marqué "-1" Histo7.xls 8000
+        //
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts =false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+            int rCnt = 0;
+            int cCnt = 0;
+            int col = 0;
+            rCnt = range.Rows.Count;
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "8000"))
+                {
+                    col = cCnt;
+                    break;
+                }
+            }
+            int time1 = System.Environment.TickCount;
+
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, "-1"))
+                {
+                    //MessageBox.Show(row.ToString());
+                    Excel.Range rangeDelx = xlWorkSheet.Cells[row, col] as Excel.Range;
+                    rangeDelx.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+
+                    range = xlWorkSheet.UsedRange;
+                    values = (object[,])range.Value2;
+                    row--;
+                }
+            }
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + " seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+        }
+        //
+        //// supprimer sauf langues pour nota-pme
+        //
+        private void supprimerhistosauflangues_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            //Afficher pas les Alerts !!non utiliser avant assurer!!!
+            xlApp.DisplayAlerts = false;
+
+            Excel.Worksheet sheetpreface = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Hist.Preface");
+            Excel.Worksheet sheetCalculs = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Hist.Calculs");
+            Excel.Worksheet sheetMacros = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Hist.Macros");
+            Excel.Worksheet sheetCombos = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Combos et listes à cocher");
+            sheetpreface.Delete();
+            sheetCalculs.Delete();
+            sheetMacros.Delete();
+            sheetCombos.Delete();
+
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// supprimer colonne marqué "-2" Histo8.xls avant diviser petite fichier pour Nota-pme
+        //
+        private void supprimermoin2_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            int time1 = System.Environment.TickCount;
+            ////////////////////////////////////////944000//////////////////////
+            int rCnt = 0;
+            int cCnt = 0;
+            int row944000 = 0;
+
+            cCnt = range.Columns.Count;
+            for (rCnt = 1; rCnt <= range.Rows.Count; rCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "944000"))
+                {
+                    row944000 = rCnt;
+                    break;
+                }
+            }
+
+            for (int col = 1; col <= xlWorkSheet.UsedRange.Columns.Count; col++)
+            {
+                string value = Convert.ToString(values[row944000, col]);
+                if (Regex.Equals(value, "-2"))
+                {
+                    Excel.Range rangeDelx = xlWorkSheet.Cells[row944000, col] as Excel.Range;
+                    rangeDelx.EntireColumn.Delete(Excel.XlDeleteShiftDirection.xlShiftToLeft);
+
+                    range = xlWorkSheet.UsedRange;
+                    values = (object[,])range.Value2;
+                    col--;
+                }
+            }
+            xlWorkSheet.SaveAs("D:\\ptw\\Histo.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = true;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + " seconds used");
+
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Histo.preface
+        //
+        private void Histopreface_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook0;
+
+
+
+            Excel.Workbook xlWorkBook;//Histo.ptw
+            Excel.Workbook xlWorkBook2;//Admin.ptw
+            Excel.Workbook xlWorkBook3;//Annuel.ptw
+            Excel.Workbook xlWorkBook4;//Eval.ptw
+            Excel.Workbook xlWorkBook5;//Decis.ptw
+            Excel.Workbook xlWorkBook6;//Tres.ptw
+            Excel.Workbook xlWorkBook7;//Histo-s.ptw
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+
+
+            xlWorkBook0 = xlApp.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook0.SaveCopyAs("D:\\ptw\\Histo.ptw");
+            xlWorkBook0.Close(true, misValue, misValue);
+
+
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Admin.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook3 = xlApp.Workbooks.Open("D:\\ptw\\Annuel.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook4 = xlApp.Workbooks.Open("D:\\ptw\\Eval.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook5 = xlApp.Workbooks.Open("D:\\ptw\\Decis.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook6 = xlApp.Workbooks.Open("D:\\ptw\\Tres.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook7 = xlApp.Workbooks.Open("D:\\ptw\\Histo-s.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = xlWorkBook.Worksheets[2] as Excel.Worksheet;
+            Excel.Range range = xlWorkSheet.UsedRange;
+
+            Excel.Range rangeinsert1 = xlWorkSheet.UsedRange.get_Range("D1", "E1") as Excel.Range;
+            rangeinsert1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+            xlWorkBook.Save();
+            Excel.Range rangeinsert2 = xlWorkSheet.UsedRange.get_Range("H1", "I1") as Excel.Range;
+            rangeinsert2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+            xlWorkBook.Save();
+            Excel.Range rangeinsert3 = xlWorkSheet.UsedRange.get_Range("L1", "M1") as Excel.Range;
+            rangeinsert3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+            xlWorkBook.Save();
+            //1
+            Excel.Range rangeOrigin1 = xlWorkSheet.Cells[1, 6] as Excel.Range;
+            Excel.Range rangeMiddle1 = xlWorkSheet.Cells[1, 5] as Excel.Range;
+            Excel.Range rangeReplace1 = xlWorkSheet.Cells[1, 4] as Excel.Range;
+            rangeOrigin1.EntireColumn.Copy(rangeReplace1.EntireColumn);
+            rangeReplace1.EntireColumn.Replace("Historique!A", "Historique!C", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            rangeReplace1.EntireColumn.Copy(rangeOrigin1.EntireColumn);
+            rangeReplace1.EntireColumn.Copy(rangeMiddle1.EntireColumn);
+            //2
+            Excel.Range rangeOrigin2 = xlWorkSheet.Cells[1, 10] as Excel.Range;
+            Excel.Range rangeMiddle2 = xlWorkSheet.Cells[1, 9] as Excel.Range;
+            Excel.Range rangeReplace2 = xlWorkSheet.Cells[1, 8] as Excel.Range;
+            rangeOrigin2.EntireColumn.Copy(rangeReplace2.EntireColumn);
+            rangeReplace2.EntireColumn.Replace("Historique!D", "Historique!F", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            rangeReplace2.EntireColumn.Copy(rangeOrigin2.EntireColumn);
+            rangeReplace2.EntireColumn.Copy(rangeMiddle2.EntireColumn);
+            //3
+            Excel.Range rangeOrigin3 = xlWorkSheet.Cells[1, 14] as Excel.Range;
+            Excel.Range rangeMiddle3 = xlWorkSheet.Cells[1, 13] as Excel.Range;
+            Excel.Range rangeReplace3 = xlWorkSheet.Cells[1, 12] as Excel.Range;
+            rangeOrigin3.EntireColumn.Copy(rangeReplace3.EntireColumn);
+            rangeReplace3.EntireColumn.Replace("Historique!G", "Historique!I", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            rangeReplace3.EntireColumn.Copy(rangeOrigin3.EntireColumn);
+            rangeReplace3.EntireColumn.Copy(rangeMiddle3.EntireColumn);
+
+
+            xlWorkBook.Save();
+            xlWorkBook2.Save();
+            xlWorkBook3.Save();
+            xlWorkBook4.Save();
+            xlWorkBook5.Save();
+            xlWorkBook6.Save();
+            xlWorkBook7.Save();
+            xlWorkBook.SaveCopyAs("D:\\ptw\\Histo.xls");
+            xlApp.Quit();
+
+        }
+        //
+        //// Annuel.ptw  "O"
+        //
+        private void AnnuelO_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;//Annuel.ptw
+            Excel.Workbook xlWorkBook2;//Admin.ptw
+            Excel.Workbook xlWorkBook3;//Histo.ptw
+            Excel.Workbook xlWorkBook4;//Eval.ptw
+            Excel.Workbook xlWorkBook5;//Decis.ptw
+            Excel.Workbook xlWorkBook6;//Tres.ptw
+            Excel.Workbook xlWorkBook7;//Histo-s.ptw
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Annuel.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Admin.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook3 = xlApp.Workbooks.Open("D:\\ptw\\Histo.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook4 = xlApp.Workbooks.Open("D:\\ptw\\Eval.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook5 = xlApp.Workbooks.Open("D:\\ptw\\Decis.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook6 = xlApp.Workbooks.Open("D:\\ptw\\Tres.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook7 = xlApp.Workbooks.Open("D:\\ptw\\Histo-s.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = xlWorkBook.Worksheets[2] as Excel.Worksheet;
+            Excel.Range range = xlWorkSheet.UsedRange;
+
+
+            Excel.Range rangeinsert1 = xlWorkSheet.UsedRange.get_Range("D1", "E1") as Excel.Range;
+            rangeinsert1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            Excel.Range rangeinsert2 = xlWorkSheet.UsedRange.get_Range("H1", "I1") as Excel.Range;
+            rangeinsert2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            Excel.Range rangeinsert3 = xlWorkSheet.UsedRange.get_Range("L1", "M1") as Excel.Range;
+            rangeinsert3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+
+            //1
+            Excel.Range rangeOrigin1 = xlWorkSheet.Cells[1, 6] as Excel.Range;
+            Excel.Range rangeMiddle1 = xlWorkSheet.Cells[1, 5] as Excel.Range;
+            Excel.Range rangeReplace1 = xlWorkSheet.Cells[1, 4] as Excel.Range;
+            rangeOrigin1.EntireColumn.Copy(rangeReplace1.EntireColumn);
+            rangeOrigin1.EntireColumn.Copy(rangeMiddle1.EntireColumn);
+
+            //2
+            Excel.Range rangeOrigin2 = xlWorkSheet.Cells[1, 10] as Excel.Range;
+            Excel.Range rangeMiddle2 = xlWorkSheet.Cells[1, 9] as Excel.Range;
+            Excel.Range rangeReplace2 = xlWorkSheet.Cells[1, 8] as Excel.Range;
+            rangeOrigin2.EntireColumn.Copy(rangeReplace2.EntireColumn);
+            rangeOrigin2.EntireColumn.Copy(rangeMiddle2.EntireColumn);
+            //3
+            Excel.Range rangeOrigin3 = xlWorkSheet.Cells[1, 14] as Excel.Range;
+            Excel.Range rangeMiddle3 = xlWorkSheet.Cells[1, 13] as Excel.Range;
+            Excel.Range rangeReplace3 = xlWorkSheet.Cells[1, 12] as Excel.Range;
+            rangeOrigin3.EntireColumn.Copy(rangeReplace3.EntireColumn);
+            rangeOrigin3.EntireColumn.Copy(rangeMiddle3.EntireColumn);
+
+            xlWorkBook.Save();
+            xlWorkBook2.Save();
+            xlWorkBook3.Save();
+            xlWorkBook4.Save();
+            xlWorkBook5.Save();
+            xlWorkBook6.Save();
+            xlWorkBook7.Save();
+            xlApp.Quit();
+        }
+        
+        //diviser ALL output Histo.xls
+        private void Diviser_Click(object sender, EventArgs e)
+        {
+            int time1 = System.Environment.TickCount;
+            fichierprepare = textBox1.Text;
+
+            AnnuelO_Click(sender, e);
+            supprimerTypologie_Click(sender, e);
+            button2_Click(sender, e);
+            HistoMettreZero_Click(sender, e);
+            HistoRempl_Click(sender, e);
+            HistoAuAvAw_Click(sender, e);
+            colCE_Click(sender, e);
+            supprimerREF_Click(sender, e);
+            button1_Click(sender, e);
+
+            Histopreface_Click(sender, e);
+
+            supprimercol_Click(sender, e);
+            button5_Click(sender, e);
+            supprimerhistosauflangues_Click(sender, e);
+            supprimermoin2_Click(sender, e);
+            //subdiviser 9000
+            button4_Click(sender, e);
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            MessageBox.Show("jobs done " + tim + " seconds used");
+        }
+        //app style
+        private void button30_Click(object sender, EventArgs e)
+        {
+            if(textBox2.Text != null)
+                stylexml = textBox2.Text;
+            else
+                MessageBox.Show("Veuillez choiser le fichier style en format XML");
+            Xmllire_Click(sender, e);
+        }
+        
+        //
+        //// Fusionner Annuel.ptw
+        //
+        private void fusionannuel_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Annuel.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet histo8 = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Combos et listes à cocher");
+            xlWorkBook.Sheets.Add(misValue, histo8, misValue, misValue);
+            xlWorkBook.Sheets.Add(misValue, histo8, misValue, misValue);
+
+            Excel.Worksheet annuel1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item("Comptes annuels");
+            Excel.Worksheet annuel1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil2");
+            Excel.Worksheet annuel2 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item("O");
+            Excel.Worksheet annuel2X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+
+
+            //xlWorkBook.Names.Add("AAANameTest", "=Historique!$F$10:$H$20", true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+
+
+            Excel.Range annuelrange1 = annuel1.UsedRange;
+            Excel.Range annuelrange1x = annuel1X.UsedRange;
+            annuelrange1.Cut(misValue);
+            annuel1X.Paste(misValue, misValue);
+            annuel1X.Name = "Comptes annuels";
+
+
+            Excel.Range annuelrange2 = annuel2.UsedRange;
+            Excel.Range annuelrange2x = annuel2X.UsedRange;
+            annuelrange2.Cut(misValue);
+            annuel2X.Paste(misValue, misValue);
+            annuel2X.Name = "O";
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                //annuel2.get_Range("A" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue).Name;
+                //annuel2.get_Range("B" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue);
+                //annuel2.get_Range("C" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue).Visible;
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, xlWorkBook2.Names.Item(i, misValue, misValue), true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fusionner Admin.ptw
+        //
+        private void fusionAdmin_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Admin.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+
+
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet histolastsheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                xlWorkBook.Sheets.Add(misValue, histolastsheet, misValue, misValue);
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+                //MessageBox.Show(admin1.Name.ToString());
+                Excel.Worksheet admin1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                if (admin1.Name.ToString() == "Langues" || admin1.Name.ToString() == "Service")
+                {
+                    admin1X.Name = "Admin." + admin1.Name.ToString();
+                }
+                else
+                {
+                    admin1X.Name = admin1.Name.ToString();
+                }
+                Excel.Range adminrange1 = admin1.UsedRange;
+                Excel.Range adminrange1x = admin1X.UsedRange;
+                adminrange1.Cut(misValue);
+                admin1X.Paste(misValue, misValue);
+            }
+
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(xlWorkBook2.Sheets.Count);
+                //admin1.get_Range("A" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue).Name;
+                //admin1.get_Range("B" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue);
+                //admin1.get_Range("C" + i.ToString(), misValue).Value2 = xlWorkBook2.Names.Item(i, misValue, misValue).Visible;
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    string champ = xlWorkBook2.Names.Item(i, misValue, misValue).Value.ToString();
+                    if (Regex.IsMatch(champ, ":")){
+                        champ.Replace(";", ",");
+                    }
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, champ, true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook2);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fusionner Decis.ptw
+        //
+        private void fusionDecis_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Decis.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet histolastsheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                xlWorkBook.Sheets.Add(misValue, histolastsheet, misValue, misValue);
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+                //MessageBox.Show(admin1.Name.ToString());
+                Excel.Worksheet admin1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+
+                admin1X.Name = admin1.Name.ToString();
+                Excel.Range adminrange1 = admin1.UsedRange;
+                Excel.Range adminrange1x = admin1X.UsedRange;
+                adminrange1.Cut(misValue);
+                admin1X.Paste(misValue, misValue);
+            }
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(xlWorkBook2.Sheets.Count);
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    string champ = xlWorkBook2.Names.Item(i, misValue, misValue).Value.ToString();
+                    if (Regex.IsMatch(champ, ":"))
+                    {
+                        champ.Replace(";", ",");
+                    }
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, champ, true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook2);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fusionner Eval.ptw
+        //
+        private void fusionEval_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Eval.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            xlApp.DisplayAlerts = false;
+            Excel.Worksheet Evaldel = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item("CmpcWaccArrièrePlan");
+            Evaldel.Delete();
+
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+
+                if (admin1.Name.ToString() == "Langues" || admin1.Name.ToString() == "Service")
+                {
+                    admin1.Name = "Eval." + admin1.Name.ToString();
+                }
+                //admin1X.Name = admin1.Name.ToString();
+                //Excel.Range adminrange1 = admin1.UsedRange;
+                //Excel.Range adminrange1x = admin1X.UsedRange;
+                //adminrange1.Cut(misValue);
+                //admin1X.Paste(misValue, misValue);
+            }
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet histolastsheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                xlWorkBook.Sheets.Add(misValue, histolastsheet, misValue, misValue);
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+                Excel.Worksheet admin1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                admin1X.Name = admin1.Name.ToString();
+
+                Excel.Range adminrange1 = admin1.UsedRange;
+                Excel.Range adminrange1x = admin1X.UsedRange;
+                adminrange1.Cut(misValue);
+                admin1X.Paste(misValue, misValue);
+                //MessageBox.Show(admin1.Name.ToString());
+            }
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(xlWorkBook2.Sheets.Count);
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    string champ = xlWorkBook2.Names.Item(i, misValue, misValue).Value.ToString();
+                    if (Regex.IsMatch(champ, ":"))
+                    {
+                        champ.Replace(";", ",");
+                    }
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, champ, true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook2);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fusionner Tres.ptw
+        //
+        private void fusionTres_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Tres.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet histolastsheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                xlWorkBook.Sheets.Add(misValue, histolastsheet, misValue, misValue);
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+                //MessageBox.Show(admin1.Name.ToString());
+                Excel.Worksheet admin1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+
+                admin1X.Name = admin1.Name.ToString();
+                Excel.Range adminrange1 = admin1.UsedRange;
+                Excel.Range adminrange1x = admin1X.UsedRange;
+                adminrange1.Cut(misValue);
+                admin1X.Paste(misValue, misValue);
+            }
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(xlWorkBook2.Sheets.Count);
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    string champ = xlWorkBook2.Names.Item(i, misValue, misValue).Value.ToString();
+                    if (Regex.IsMatch(champ, ":"))
+                    {
+                        champ.Replace(";", ",");
+                    }
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, champ, true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook2);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Fusionner Histo-s.ptw
+        //
+        private void fusionHistos_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBook2;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBook2 = xlApp.Workbooks.Open("D:\\ptw\\Histo-s.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            xlApp.Calculation = Excel.XlCalculation.xlCalculationManual;
+            ///////////////////////////////////////////////////////////////////////////////////////////
+            for (int nsx = 1; nsx <= xlWorkBook2.Sheets.Count; nsx++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(nsx);
+                admin1.Unprotect(misValue);//pour mosaique
+                admin1.Name = admin1.Name.ToString() + "-s";
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////
+            for (int ix = 1; ix <= xlWorkBook2.Names.Count; ix++)
+            {
+                if (xlWorkBook2.Names.Item(ix, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    for (int nsx = 1; nsx <= xlWorkBook2.Sheets.Count; nsx++)
+                    {
+                        Excel.Worksheet adminx2 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(nsx);
+                        Excel.Range rangex2 = adminx2.UsedRange;
+
+                        string nameorigin = xlWorkBook2.Names.Item(ix, misValue, misValue).Name.ToString();
+                        string name_s = xlWorkBook2.Names.Item(ix, misValue, misValue).Name.ToString() + "_s";
+                        rangex2.Cells.Replace(nameorigin, name_s, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                    }
+                    xlWorkBook2.Names.Item(ix, misValue, misValue).Name = xlWorkBook2.Names.Item(ix, misValue, misValue).Name.ToString() + "_s";
+                }
+            }
+            //xlApp.DisplayAlerts = true;
+            ////////////////////////////////////////////////////////////////////////////////////////
+
+            for (int ns = 1; ns <= xlWorkBook2.Sheets.Count; ns++)
+            {
+                Excel.Worksheet histolastsheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+                xlWorkBook.Sheets.Add(misValue, histolastsheet, misValue, misValue);
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(ns);
+                admin1.Unprotect(misValue);//pour mosaique
+                //MessageBox.Show(admin1.Name.ToString());
+                Excel.Worksheet admin1X = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(xlWorkBook.Sheets.Count);
+
+                admin1X.Name = admin1.Name.ToString();
+                Excel.Range adminrange1 = admin1.UsedRange;
+                Excel.Range adminrange1x = admin1X.UsedRange.Cells[1, 1] as Excel.Range;
+                adminrange1.Copy(misValue);
+                admin1X.Paste(misValue, misValue);
+                //adminrange1x.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+            }
+
+            for (int i = 1; i <= xlWorkBook2.Names.Count; i++)
+            {
+                Excel.Worksheet admin1 = (Excel.Worksheet)xlWorkBook2.Worksheets.get_Item(xlWorkBook2.Sheets.Count);
+                if (xlWorkBook2.Names.Item(i, misValue, misValue).Name.Equals("Zone_d_impression") == false)
+                {
+                    string champ = xlWorkBook2.Names.Item(i, misValue, misValue).Value.ToString();
+                    if (Regex.IsMatch(champ, ":"))
+                    {
+                        champ.Replace(";", ",");
+                    }
+                    xlWorkBook.Names.Add(xlWorkBook2.Names.Item(i, misValue, misValue).Name, champ, true, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                }
+            }
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkBook2);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+
+        //sum up
+        private void Fussioner_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp1;
+            Excel.Workbook xlWorkBook1;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp1 = new Excel.ApplicationClass();
+            xlApp1.Visible = true;
+            xlApp1.DisplayAlerts = false;
+            xlWorkBook1 = xlApp1.Workbooks.Open("D:\\ptw\\Histo.ptw", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet1 = (Excel.Worksheet)xlWorkBook1.Worksheets.get_Item("Historique");
+
+
+
+
+            //for (int nsx = 1; nsx <= xlWorkBook1.Sheets.Count; nsx++)
+            //{
+            //    Excel.Worksheet histo1 = (Excel.Worksheet)xlWorkBook1.Worksheets.get_Item(nsx);
+            //    histo1.Unprotect(misValue);//pour mosaique
+            //    histo1.Name = histo1.Name.ToString() + "-Histo";
+            //}
+
+
+
+
+
+            xlWorkSheet1.SaveAs("D:\\ptw\\preface.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlWorkBook1.Close(true, misValue, misValue);
+            xlApp1.Quit();
+            /////////////////////////////////////////////////////////////////////////////////
+            fusionHistos_Click(sender, e);
+            fusionannuel_Click(sender, e);
+            fusionDecis_Click(sender, e);
+            fusionEval_Click(sender, e);
+            fusionAdmin_Click(sender, e);
+
+
+            if (checkBox3.Checked == true){
+            fusionTres_Click(sender, e);
+            }
+
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+            
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\preface.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlApp.Calculation = Excel.XlCalculation.xlCalculationManual;
+
+            int time1 = System.Environment.TickCount;
+            for (int ns = 1; ns <= xlWorkBook.Sheets.Count; ns++)
+            {
+                Excel.Worksheet rangereplace = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(ns);
+                Excel.Range adminrange1 = rangereplace.UsedRange;
+                adminrange1.Cells.Replace("D:\\ptw\\[histo.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                adminrange1.Cells.Replace("D:\\ptw\\[Admin.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                adminrange1.Cells.Replace("D:\\ptw\\[annuel.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                adminrange1.Cells.Replace("D:\\ptw\\[eval.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                adminrange1.Cells.Replace("D:\\ptw\\[histo-s.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                adminrange1.Cells.Replace("D:\\ptw\\[decis.ptw]", "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+            }
+
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            MessageBox.Show("jobs done " + tim + " seconds used");
+        }
+        
+        
+        
+        
+        
+
+        //
+        //// subdiviser 1 9000
+        //
+        private void button4_Click(object sender, EventArgs e)
+        {
+            pathnotapme = textBox3.Text;
+            //OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
+            //OpenFileDialog1.InitialDirectory = "D:\\ptw\\";
+            //OpenFileDialog1.Filter = "Excel Files .xls|*.xls|ptw files .ptw|*.ptw|All files (*.*)|*.*";
+            ////OpenFileDialog1.FilterIndex = 2;
+            //OpenFileDialog1.RestoreDirectory = true;
+            //OpenFileDialog1.ShowDialog();
+            //string openfilex = OpenFileDialog1.FileName.ToString();//"D:\\ptw\\Histo.xls"
+            string openfilex = "D:\\ptw\\Histo.xls";
+
+            ////////////////open excel///////////////////////////////////////
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            Excel.Workbook xlWorkBookx1;
+            Excel.Workbook xlWorkBooknewx1;
+            object misValue = System.Reflection.Missing.Value;
+            //////////creat modele histox.xls pour fichier diviser////////////////////////////////
+            Excel.Application xlAppRef;
+            Excel.Workbook xlWorkBookRef;
+            xlAppRef = new Excel.ApplicationClass();
+            xlAppRef.Visible = true;
+            xlAppRef.DisplayAlerts = false;
+            //xlWorkBookRef = xlAppRef.Workbooks.Open(openfilex, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            xlWorkBookRef = xlAppRef.Workbooks.Open("D:\\ptw\\Histo.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheetRef = (Excel.Worksheet)xlWorkBookRef.Worksheets.get_Item("Historique");
+            Excel.Range rangeRefall = xlWorkSheetRef.UsedRange;
+
+
+            Excel.Range rangeRef = xlWorkSheetRef.Cells[rangeRefall.Rows.Count, 1] as Excel.Range;
+            rangeRef.EntireRow.Copy(misValue);
+            rangeRef.EntireRow.PasteSpecial(Excel.XlPasteType.xlPasteValues, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+            Excel.Range rangeRefdel = xlWorkSheetRef.UsedRange.get_Range("A1", xlWorkSheetRef.Cells[rangeRefall.Rows.Count - 1, 1]) as Excel.Range;
+            rangeRefdel.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+            Excel.Range rangeA1 = xlWorkSheetRef.Cells[1, 1] as Excel.Range;
+            rangeA1.Activate();
+            xlWorkSheetRef.SaveAs("D:\\ptw\\Histox.xls", misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+            xlWorkBookRef.Close(true, misValue, misValue);
+            xlAppRef.Quit();
+            //////////////////////////////////////////////////////////////////////////////////
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+
+            //MessageBox.Show(openfilex);//D:\ptw\Histo.xls
+            string remplacehisto8 ="[" + openfilex.Substring(7, 9) + "]";
+            xlWorkBook = xlApp.Workbooks.Open(openfilex, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+
+
+            int rCnt = 0;
+            int cCnt = 0;
+            int col = 0;
+            int col3000 = 0;
+            int col4000 = 0;
+            int col5000 = 0;
+            int col8000 = 0;
+            rCnt = range.Rows.Count;
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "3000"))
+                {
+                    col3000 = cCnt;
+                }
+                if (Regex.Equals(valuecellabs, "4000"))
+                {
+                    col4000 = cCnt;
+                }
+                if (Regex.Equals(valuecellabs, "5000"))
+                {
+                    col5000 = cCnt;
+                }
+                if (Regex.Equals(valuecellabs, "8000"))
+                {
+                    col8000 = cCnt;
+                }
+                if (Regex.Equals(valuecellabs, "9000"))
+                {
+                    col = cCnt;
+                    break;
+                }
+            }
+            int fileflag = 0;
+            for (int row = 25; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, "1") || Regex.Equals(value, "-1"))
+                {
+                    xlWorkBookx1 = xlApp.Workbooks.Open("D:\\ptw\\Histox.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+                    Excel.Worksheet xlWorkSheetx1 = (Excel.Worksheet)xlWorkBookx1.Worksheets.get_Item("Historique");
+                    string[] namestable = { "ACT1.xls", "ACT2.xls", "ACT3.xls", "ACT4.xls", "PAS1.xls", "PAS2.xls", "PAS3.xls", "CR1.xls", "CR2.xls", "CR3.xls", "CR4.xls", "ANN5-1.xls", "ANN5-2.xls", "ANN5-3.xls", "ANN6-1.xls", "ANN6-2.xls", "ANN6-3.xls", "ANN7-1.xls", "ANN7-2.xls", "ANN7-3.xls", "ANN8-1.xls", "ANN8-2.xls", "ANN11-1.xls" };
+
+                    string divisavenom = pathnotapme+ "\\" + namestable[fileflag];
+                    System.IO.Directory.CreateDirectory(pathnotapme);//////////////cree repertoire
+                    xlWorkSheetx1.SaveAs(divisavenom, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                    xlWorkBookx1.Close(true, misValue, misValue);
+                    ////////////Grande titre "-1"/////////////////////////////////////////////////////////////////
+                    if (Regex.Equals(Convert.ToString(values[25, col]), "-1"))
+                    {
+                        Excel.Range rangegtitre = xlWorkSheet.Cells[25, col] as Excel.Range;
+                        Excel.Range rangePastegtitre = xlWorkSheet.UsedRange.Cells[24, 1] as Excel.Range;
+                        rangegtitre.EntireRow.Cut(rangePastegtitre.EntireRow);
+
+                        Excel.Range rangegtitreblank = xlWorkSheet.Cells[25, col] as Excel.Range;
+                        rangegtitreblank.EntireRow.Delete(misValue);
+                        row --;// point important, pour garder l'ordre de row ne change pas
+                    }
+                    
+                    ////////////////////insertion///////////////////////////////////////////////////////////////////
+                    Excel.Range rangeDelx = xlWorkSheet.Cells[row, col] as Excel.Range;
+                    Excel.Range rangediviser = xlWorkSheet.UsedRange.get_Range("A1", xlWorkSheet.Cells[row - 1, col]) as Excel.Range;
+                    Excel.Range rangedelete = xlWorkSheet.UsedRange.get_Range("A25", xlWorkSheet.Cells[row - 1, col]) as Excel.Range;
+                    rangediviser.EntireRow.Select();
+                    rangediviser.EntireRow.Copy(misValue);
+                    //MessageBox.Show(row.ToString());
+
+                    xlWorkBooknewx1 = xlApp.Workbooks.Open(divisavenom, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+                    Excel.Worksheet xlWorkSheetnewx1 = (Excel.Worksheet)xlWorkBooknewx1.Worksheets.get_Item("Historique");
+                    //xlWorkBooknewx1.set_Colors(misValue, xlWorkBook.get_Colors(misValue));
+                    Excel.Range rangenewx1 = xlWorkSheetnewx1.Cells[1, 1] as Excel.Range;
+                    rangenewx1.EntireRow.Insert(Excel.XlInsertShiftDirection.xlShiftDown, misValue);
+                    xlWorkSheetnewx1.SaveAs(divisavenom, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
+                    xlWorkBooknewx1.Close(true, misValue, misValue);
+
+                    ////////////////////replace formulaire contient ptw/histo8.xls///////////////////
+                    Excel.Workbook xlWorkBookremplace = xlApp.Workbooks.Open(divisavenom, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+                    Excel.Worksheet xlWorkSheetremplace = (Excel.Worksheet)xlWorkBookremplace.Worksheets.get_Item("Historique");
+                    Excel.Range rangeremplace = xlWorkSheetremplace.UsedRange;
+                    rangeremplace.Cells.Replace(remplacehisto8, "", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);//NB remplacehisto8 il faut ameliorer pour adapder tous les cas
+                    ////////delete col8000 "-2"//////////////////////////////////////////////////
+                    object[,] values8000 = (object[,])rangeremplace.Value2;
+
+                    for (int rowdel = 1; rowdel <= rangeremplace.Rows.Count; rowdel++)
+                    {
+                        string valuedel = Convert.ToString(values8000[rowdel, col8000]);
+                        if (Regex.Equals(valuedel, "-2"))
+                        {
+                            Excel.Range rangeDely = xlWorkSheetremplace.Cells[rowdel, col8000] as Excel.Range;
+                            rangeDely.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+
+                            rangeremplace = xlWorkSheetremplace.UsedRange;
+                            values8000 = (object[,])rangeremplace.Value2;
+                            rowdel--;
+                        }
+                    }
+                    ///////////////row hide "-5"////////////////////////////////////////////////
+                    for (int rowhide = 1; rowhide <= rangeremplace.Rows.Count; rowhide++)
+                    {
+                        string valuedel = Convert.ToString(values8000[rowhide, col8000]);
+                        if (Regex.Equals(valuedel, "-5"))
+                        {
+                            Excel.Range rangeDely = xlWorkSheetremplace.Cells[rowhide, col8000] as Excel.Range;
+                            rangeDely.EntireRow.Hidden = true;
+                        }
+                    }
+                    ///////////////////////////////////////////////////////////////////////////
+                    object[,] valuesNX = (object[,])rangeremplace.Value2;
+                    //string valueNX = Convert.ToString(valuesNX[row, col]);
+                    for (int row3000 = 1; row3000 <= rangeremplace.Rows.Count; row3000++)
+                    {
+                        Excel.Range rangeprey = xlWorkSheetremplace.Cells[row3000, col3000] as Excel.Range;
+                        if (Regex.Equals(Convert.ToString(valuesNX[row3000, col8000]), "-3"))
+                        {
+                            rangeprey.Locked = false;
+                            rangeprey.FormulaHidden = false;
+                        }
+                        if (Regex.Equals(Convert.ToString(valuesNX[row3000, col8000]), "-4"))
+                        {
+                            rangeprey.Value2 = 0;
+                            rangeprey.Locked = true;
+                            rangeprey.FormulaHidden = true;
+                        }
+                        Excel.Range rangeDely = xlWorkSheetremplace.Cells[row3000, col3000] as Excel.Range;
+                        if (rangeDely.Locked.ToString() != "True")
+                        {
+                            rangeDely.Value2 = 0;
+                        }
+                    }
+                    for (int row4000 = 1; row4000 <= rangeremplace.Rows.Count; row4000++)
+                    {
+                        Excel.Range rangeprey = xlWorkSheetremplace.Cells[row4000, col4000] as Excel.Range;
+                        if (Regex.Equals(Convert.ToString(valuesNX[row4000, col8000]), "-3"))
+                        {
+                            rangeprey.Locked = false;
+                            rangeprey.FormulaHidden = false;
+                        }
+                        if (Regex.Equals(Convert.ToString(valuesNX[row4000, col8000]), "-4"))
+                        {
+                            rangeprey.Value2 = 0;
+                            rangeprey.Locked = true;
+                            rangeprey.FormulaHidden = true;
+                        }
+                        Excel.Range rangeDely = xlWorkSheetremplace.Cells[row4000, col4000] as Excel.Range;
+                        if (rangeDely.Locked.ToString() != "True")
+                        {
+                            rangeDely.Value2 = 0;
+                        }
+                    }
+                    for (int row5000 = 1; row5000 <= rangeremplace.Rows.Count; row5000++)
+                    {
+                        Excel.Range rangeprey = xlWorkSheetremplace.Cells[row5000, col5000] as Excel.Range;
+                        if (Regex.Equals(Convert.ToString(valuesNX[row5000, col8000]), "-3"))
+                        {
+                            rangeprey.Locked = false;
+                            rangeprey.FormulaHidden = false;
+                        }
+                        if (Regex.Equals(Convert.ToString(valuesNX[row5000, col8000]), "-4"))
+                        {
+                            rangeprey.Value2 = 0;
+                            rangeprey.Locked = true;
+                            rangeprey.FormulaHidden = true;
+                        }
+                        Excel.Range rangeDely = xlWorkSheetremplace.Cells[row5000, col5000] as Excel.Range;
+                        if (rangeDely.Locked.ToString() != "True")
+                        {
+                            rangeDely.Value2 = 0;
+                        }
+                    }
+                    ////////////////////////////////////////////////////////////////////////////
+                    xlApp.ActiveWindow.SplitRow = 0;
+                    xlApp.ActiveWindow.SplitColumn = 0;
+                    xlWorkBookremplace.Save();
+                    xlWorkBookremplace.Close(true, misValue, misValue);
+                    if (checkBox19.Checked == true)
+                    {
+                        fileAstyler = divisavenom;
+                        Xmllire_Click(sender, e);
+                    }
+
+                    rangedelete.Copy(misValue);
+                    rangedelete.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+
+                    range = xlWorkSheet.UsedRange;
+                    values = (object[,])range.Value2;
+                    row = 25;//important remise le ligne commencer apres action delete
+                    xlWorkSheet.Activate();
+                    fileflag++;
+                }
+            }
+            xlApp.Quit();
+
+            //MessageBox.Show("jobs done");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        //// Appliquer Style
+        //
+        private void Astyle_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\Histo6.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+
+            Excel.Range range = xlWorkSheet.UsedRange;
+
+            Excel.Range rangex1 = xlWorkSheet.UsedRange.get_Range("A21", "E21") as Excel.Range;
+            Excel.Range rangex2 = xlWorkSheet.UsedRange.get_Range("A24", "E24") as Excel.Range;
+            Excel.Range rangex3 = xlWorkSheet.UsedRange.get_Range("A26", "E26") as Excel.Range;
+            Excel.Range rangex4 = xlWorkSheet.UsedRange.get_Range("A27", "E27") as Excel.Range;
+
+
+            Excel.Range rangestyle = xlWorkSheet.UsedRange.get_Range("A30", "E40") as Excel.Range;
+            rangex1.Copy(misValue);
+            rangestyle.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteFormats, Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+
+            //xlApp.CutCopyMode = Microsoft.Office.Interop.Excel.XlCutCopyMode.none;
+
+            //----------------------------------------------------------------------------------------
+            //Excel.Style style1 = xlWorkBook.Styles.Add("NewStyle", misValue);
+            //style1.Font.Name = "Verdana";
+            //style1.Font.Size = 12;
+            //style1.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Blue);
+            //style1.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.YellowGreen);
+            //style1.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+            ////MessageBox.Show(rangex1.Style.ToString());
+            //rangestyle.Style = "NewStyle";
+            //----------------------------------------------------------------------------------------
+        }
+
+        private void releaseObject(object obj)
+        {
+            try
+            {
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+                obj = null;
+            }
+            catch (Exception ex)
+            {
+                obj = null;
+                MessageBox.Show("Unable to release the Object " + ex.ToString());
+            }
+            finally
+            {
+                GC.Collect();
+            }
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////Test appliquer style Methode copie coller
+        //
+        private void button13_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\Histo test.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            int time1 = System.Environment.TickCount; 
+            int col = 10;
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, "1"))
+                {
+                    Excel.Range rangeStyleSource = xlWorkSheet.UsedRange.get_Range("A1", "F1") as Excel.Range;
+                    rangeStyleSource.Copy(misValue);
+                    Excel.Range rangeTerminal = xlWorkSheet.UsedRange.get_Range("A" + row, "D" + row) as Excel.Range;
+                    rangeTerminal.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteFormats, Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+                }
+                if (Regex.Equals(value, "2"))
+                {
+                    Excel.Range rangeStyleSource = xlWorkSheet.UsedRange.get_Range("A2", "F2") as Excel.Range;
+                    rangeStyleSource.Copy(misValue);
+                    Excel.Range rangeTerminal = xlWorkSheet.UsedRange.get_Range("A" + row, "D" + row) as Excel.Range;
+                    rangeTerminal.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteFormats, Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+                }
+                if (Regex.Equals(value, "3"))
+                {
+                    Excel.Range rangeStyleSource = xlWorkSheet.UsedRange.get_Range("A3", "F3") as Excel.Range;
+                    rangeStyleSource.Copy(misValue);
+                    Excel.Range rangeTerminal = xlWorkSheet.UsedRange.get_Range("A" + row, "D" + row) as Excel.Range;
+                    //Excel.Range rangeTerminal = xlWorkSheet.Cells[row, 1] as Excel.Range;
+                    rangeTerminal.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteFormats, Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
+                }
+            }
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+
+            MessageBox.Show(tim + "seconds");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        ////Test appliquer style Methode cellule par cellule
+        //
+        private void button14_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\Histo test.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            //----------------------------------------------------------------------------------------
+            Excel.Style style11 = xlWorkBook.Styles.Add("NewStyle11", misValue);
+            style11.Font.Name = "Verdana";
+            style11.Font.Size = 12;
+            style11.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+            style11.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Yellow);
+            style11.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+            //----------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------------------
+            Excel.Style style22 = xlWorkBook.Styles.Add("NewStyle22", misValue);
+            style22.Font.Name = "Ariel";
+            style22.Font.Size = 10;
+            style22.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.MediumTurquoise);
+            style22.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Gainsboro);
+            style22.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+            //----------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------------------
+            Excel.Style style33 = xlWorkBook.Styles.Add("NewStyle33", misValue);
+            style33.Font.Name = "Verdana";
+            style33.Font.Size = 8;
+            style33.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Blue);
+            style33.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.YellowGreen);
+            style33.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+            //----------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------------------
+            Excel.Style style44 = xlWorkBook.Styles.Add("NewStyle44", misValue);
+            style44.Font.Name = "Verdana";
+            style44.Font.Size = 6;
+            style44.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightCyan);
+            style44.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.HotPink);
+            style44.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+            //----------------------------------------------------------------------------------------
+            int time1=System.Environment.TickCount; 
+            int col = 10;
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, "1"))
+                {
+                    Excel.Range rangeTerminal = xlWorkSheet.Cells[row, 1] as Excel.Range;
+                    rangeTerminal.Style = style11;
+                    Excel.Range rangeTerminal2 = xlWorkSheet.Cells[row, 2] as Excel.Range;
+                    rangeTerminal2.Style = style22;
+                    Excel.Range rangeTerminal3 = xlWorkSheet.Cells[row, 3] as Excel.Range;
+                    rangeTerminal3.Style = style33;
+                    Excel.Range rangeTerminal4 = xlWorkSheet.Cells[row, 4] as Excel.Range;
+                    rangeTerminal4.Style = style44;
+                }
+                if (Regex.Equals(value, "2"))
+                {
+                    Excel.Range rangeTerminal = xlWorkSheet.Cells[row, 1] as Excel.Range;
+                    rangeTerminal.Style = style44;
+                    Excel.Range rangeTerminal2 = xlWorkSheet.Cells[row, 2] as Excel.Range;
+                    rangeTerminal2.Style = style33;
+                    Excel.Range rangeTerminal3 = xlWorkSheet.Cells[row, 3] as Excel.Range;
+                    rangeTerminal3.Style = style22;
+                    Excel.Range rangeTerminal4 = xlWorkSheet.Cells[row, 4] as Excel.Range;
+                    rangeTerminal4.Style = style11;
+                }
+                if (Regex.Equals(value, "3"))
+                {
+                    Excel.Range rangeTerminal = xlWorkSheet.Cells[row, 1] as Excel.Range;
+                    rangeTerminal.Style = style22;
+                    Excel.Range rangeTerminal2 = xlWorkSheet.Cells[row, 2] as Excel.Range;
+                    rangeTerminal2.Style = style44;
+                    Excel.Range rangeTerminal3 = xlWorkSheet.Cells[row, 3] as Excel.Range;
+                    rangeTerminal3.Style = style11;
+                    Excel.Range rangeTerminal4 = xlWorkSheet.Cells[row, 4] as Excel.Range;
+                    rangeTerminal4.Style = style33;
+                }
+            }
+            int time2=System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+
+            MessageBox.Show(tim+"seconds");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //ecrire ini
+        private void ecrire_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
+            OpenFileDialog1.InitialDirectory = "D:\\ptw\\appstyle.xls";
+            OpenFileDialog1.Filter = "Excel Files .xls|*.xls|ptw files .ptw|*.ptw|All files (*.*)|*.*";
+            //OpenFileDialog1.FilterIndex = 2;
+            OpenFileDialog1.RestoreDirectory = true;
+            OpenFileDialog1.ShowDialog();
+
+
+            ////////////////open excel////////////////////////
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            string openfilex = OpenFileDialog1.FileName.ToString();//"D:\\ptw\\appstyle.xls"
+            xlWorkBook = xlApp.Workbooks.Open(openfilex, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            string filePath = "D:\\demo.ini";
+            IniFile iniFile = new IniFile(filePath);
+
+            int col = 11;
+            int time1 = System.Environment.TickCount;
+
+            for (int row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (Regex.Equals(value, row.ToString()))
+                {
+                    string colcount = iniFile.ReadInivalue("style"+row , "col");
+                    //MessageBox.Show(colcount);
+                    int colcountx = Convert.ToInt32(colcount);
+                    for (int colc = 1; colc <= colcountx; colc++)
+                    {
+                        Excel.Range rangeDelx = xlWorkSheet.Cells[row, colc] as Excel.Range;
+                        string fontname = rangeDelx.Font.Name.ToString();
+                        string fontsize = rangeDelx.Font.Size.ToString();
+                        string fontcolor = rangeDelx.Font.Color.ToString();
+                        string fontstyle = rangeDelx.Font.FontStyle.ToString();
+                        string fontbold = rangeDelx.Font.Bold.ToString();
+                        string fontitalic = rangeDelx.Font.Italic.ToString();
+                        string fontunderline = rangeDelx.Font.Underline.ToString();
+                        string bgcolor = rangeDelx.Interior.Color.ToString();
+                        string bgcolorindex = rangeDelx.Interior.ColorIndex.ToString();
+                        string bordertop = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeTop].LineStyle.ToString();
+                        string borderbot = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle.ToString();
+                        string borderleft = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeLeft].LineStyle.ToString();
+                        string borderright = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle.ToString();
+                        iniFile.WriteInivalue("style" + row, "font" + colc, fontname);
+                        iniFile.WriteInivalue("style" + row, "fontsize" + colc, fontsize);
+                        iniFile.WriteInivalue("style" + row, "fontcolor" + colc, fontcolor);
+                        iniFile.WriteInivalue("style" + row, "fontstyle" + colc, fontstyle);
+                        iniFile.WriteInivalue("style" + row, "fontbold" + colc, fontbold);
+                        iniFile.WriteInivalue("style" + row, "fontitalic" + colc, fontitalic);
+                        iniFile.WriteInivalue("style" + row, "fontunderline" + colc, fontunderline);
+                        iniFile.WriteInivalue("style" + row, "bgcolor" + colc, bgcolor);
+                        iniFile.WriteInivalue("style" + row, "bgcolorindex" + colc, bgcolorindex);
+                        iniFile.WriteInivalue("style" + row, "bordertop" + colc, bordertop);
+                        iniFile.WriteInivalue("style" + row, "borderbot" + colc, borderbot);
+                        iniFile.WriteInivalue("style" + row, "borderleft" + colc, borderleft);
+                        iniFile.WriteInivalue("style" + row, "borderright" + colc, borderright);
+
+                    }
+                    
+                }
+            }
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            MessageBox.Show("jobs done " + tim + " seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+
+            //string[] fileNames = new string[] { "font", "fontsize", "colorbg", "colorfont" };
+            //string[] values = new string[] { "value1", "value2", "value3", "value4" };
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    iniFile.WriteInivalue("style3", fileNames[i], values[i]);
+            //}
+        }
+        //lire ini
+        private void lire_Click(object sender, EventArgs e)
+        {
+            string filePath = "D:\\demo.ini";
+            IniFile iniFile = new IniFile(filePath);
+
+
+            string singleValue1 = null;
+            string singleValue2 = null;
+            string singleValue3 = null;
+            string singleValue4 = null;
+            singleValue1 = iniFile.ReadInivalue("style1", "font");
+            singleValue2 = iniFile.ReadInivalue("style1", "fontsize");
+            singleValue3 = iniFile.ReadInivalue("style1", "colorbg");
+            singleValue4 = iniFile.ReadInivalue("style1", "colorfont");
+            MessageBox.Show(singleValue1 + "   " + singleValue2 + "   " + singleValue3 + "   " + singleValue4);
+
+
+            //string[] fileNames = new string[] { "file1", "file2", "file3", "file4" };
+            //ArrayList values = new ArrayList();
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    values.Add(iniFile.ReadInivalue("style3", fileNames[i]));
+            //}
+            //int nCount = values.Count;
+            //string multiValues = null;
+            //for (int i = 0; i < nCount; i++)
+            //{
+            //    multiValues += values[i].ToString() + " ";
+            //}
+            //MessageBox.Show(multiValues);
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////
+        //Xml Ecrire
+        private void Xmlecrire_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
+            OpenFileDialog1.InitialDirectory = "D:\\ptw\\appstyle.xls";
+            OpenFileDialog1.Filter = "Excel Files .xls|*.xls|ptw files .ptw|*.ptw|All files (*.*)|*.*";
+            //OpenFileDialog1.FilterIndex = 2;
+            //OpenFileDialog1.RestoreDirectory = true;
+            OpenFileDialog1.ShowDialog();
+
+            ////////////////open excel////////////////////////
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            string openfilex = OpenFileDialog1.FileName.ToString();//"D:\\ptw\\appstyle.xls"
+            xlWorkBook = xlApp.Workbooks.Open(openfilex, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            //XmlTextWriter appstylewriter = new XmlTextWriter("D:\\appstyle.xml", null);
+            //XmlTextReader appstylereader = new XmlTextReader("D:\\appstyle.xml");
+            XmlDocument appstyleDoc = new XmlDocument();
+            XmlElement styleRoot;
+            XmlNode stylexmlNode;
+
+            stylexmlNode = appstyleDoc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
+            appstyleDoc.AppendChild(stylexmlNode);
+            styleRoot = appstyleDoc.CreateElement("style");
+            appstyleDoc.AppendChild(styleRoot);
+
+
+
+            //appstyleDoc.Load("D:\\appstyle.xml");
+            ///////////////predifinie palette index////////////////////////////////////////////
+            XmlNode racinestyle = appstyleDoc.SelectSingleNode("//style");
+            XmlElement xpalette = appstyleDoc.CreateElement("palette");
+            racinestyle.AppendChild(xpalette);
+
+            XmlElement nbstyle = appstyleDoc.CreateElement("nbstyle");
+            racinestyle.AppendChild(nbstyle);
+
+            for (int nindex = 1; nindex <= 56; nindex++)
+            {
+                XmlElement indexx = appstyleDoc.CreateElement("index" + nindex);
+                xpalette.AppendChild(indexx);
+                indexx.InnerText = xlWorkBook.get_Colors(nindex).ToString();
+                ////////////////////////////////////////////attribut RGB faculté
+                int colorindexox = Convert.ToInt32(indexx.InnerText);
+                int colorindexB = colorindexox / 65536;
+                int colorindexG = (colorindexox % 65536) / 256;
+                int colorindexR = (colorindexox % 65536) % 256;
+                indexx.SetAttribute("R", colorindexR.ToString());
+                indexx.SetAttribute("G", colorindexG.ToString());
+                indexx.SetAttribute("B", colorindexB.ToString());
+            }
+            ///////////////////////////////////////////////////////////////////////////////////
+
+            int rCnt = 0;
+            int cCnt = 0;
+            int col = 0;
+            rCnt = range.Rows.Count;
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "1000"))
+                {
+                    col = cCnt;
+                    break;
+                }
+            }
+            string colcount = "";
+            int time1 = System.Environment.TickCount;
+            int nb = 1;
+
+            for (int row = 1; row <= values.GetUpperBound(0)-1; row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                if (value != "")
+                {
+                    XmlElement numerostyle = appstyleDoc.CreateElement("nbstyle" + nb);
+                    nb++;
+                    nbstyle.AppendChild(numerostyle);
+                    numerostyle.InnerText = value;
+                    ////////////////////////////////////////////////////////////////////
+                    XmlElement styleNX = appstyleDoc.CreateElement("style" + value);
+                    racinestyle.AppendChild(styleNX);
+                    XmlElement colNX = appstyleDoc.CreateElement("col");
+                    colNX.InnerText = Convert.ToString(values[row, col + 1]);
+                    styleNX.AppendChild(colNX);
+
+
+                    XmlNode xstyle = appstyleDoc.SelectSingleNode("//style" + value);
+                    if (xstyle != null)
+                    {
+                        colcount = (xstyle.SelectSingleNode("col")).InnerText;
+                    }
+
+                    //MessageBox.Show(colcount);
+                    int colcountx = Convert.ToInt32(colcount);
+                    for (int colc = 1; colc <= colcountx; colc++)
+                    {
+                        XmlElement nodeN = appstyleDoc.CreateElement("style" + value + "." + colc);
+                        xstyle.AppendChild(nodeN);
+
+                        Excel.Range rangeDelx = xlWorkSheet.Cells[row, colc + 2] as Excel.Range;
+                        string fontname = rangeDelx.Font.Name.ToString();
+                        string fontsize = rangeDelx.Font.Size.ToString();
+                        //string fontcolor = rangeDelx.Font.Color.ToString();
+                        //int fontcnumber = Convert.ToInt32(fontcolor);
+                        //int colorB = fontcnumber / 65536;
+                        //int colorG = (fontcnumber % 65536) / 256;
+                        //int colorR = (fontcnumber % 65536) % 256;
+                        string fontcolorindex = rangeDelx.Font.ColorIndex.ToString();
+                        string fontbold = rangeDelx.Font.Bold.ToString();
+                        string fontitalic = rangeDelx.Font.Italic.ToString();
+                        string fontunderline = rangeDelx.Font.Underline.ToString();
+                        //string bgcolor = rangeDelx.Interior.Color.ToString();
+                        //int bgcnumber = Convert.ToInt32(bgcolor);
+                        //int bgcolorB = bgcnumber / 65536;
+                        //int bgcolorG = (bgcnumber % 65536) / 256;
+                        //int bgcolorR = (bgcnumber % 65536) % 256;
+
+                        string bgcolorindex = rangeDelx.Interior.ColorIndex.ToString();
+                        //top
+                        string bordertop = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeTop].LineStyle.ToString();
+                        string borderweighttop = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeTop].Weight.ToString();
+                        //bot
+                        string borderbot = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeBottom].LineStyle.ToString();
+                        string borderweightbot = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeBottom].Weight.ToString();
+                        //left
+                        string borderleft = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeLeft].LineStyle.ToString();
+                        string borderweightleft = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeLeft].Weight.ToString();
+                        //right
+                        string borderright = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeRight].LineStyle.ToString();
+                        string borderweightright = rangeDelx.Borders[Excel.XlBordersIndex.xlEdgeRight].Weight.ToString();
+
+                        string warptext = rangeDelx.WrapText.ToString();
+                        string Halignment = rangeDelx.HorizontalAlignment.ToString();
+                        string Valignment = rangeDelx.VerticalAlignment.ToString();
+                        string mergecell = rangeDelx.MergeCells.ToString();
+                        string mergecellcount = rangeDelx.MergeArea.Cells.Count.ToString();
+
+                        string nomberformat = rangeDelx.NumberFormat.ToString();
+
+                        string locked = rangeDelx.Locked.ToString();
+                        string formulahidden = rangeDelx.FormulaHidden.ToString();
+
+                        string colwidth = rangeDelx.ColumnWidth.ToString();
+                        string rowheight = rangeDelx.RowHeight.ToString();
+
+                        //
+                        XmlElement nodeN1 = appstyleDoc.CreateElement("font");
+                        nodeN.AppendChild(nodeN1);
+                        nodeN1.InnerText = fontname;
+                        //
+                        XmlElement nodeN2 = appstyleDoc.CreateElement("fontsize");
+                        nodeN.AppendChild(nodeN2);
+                        nodeN2.InnerText = fontsize;
+                        //
+                        XmlElement nodeN3 = appstyleDoc.CreateElement("fontcolorindex");
+                        nodeN.AppendChild(nodeN3);
+                        nodeN3.InnerText = fontcolorindex;
+                        //
+                        //XmlElement nodeN3a = appstyleDoc.CreateElement("fontcolor");
+                        //nodeN.AppendChild(nodeN3a);
+                        //nodeN3a.InnerText = fontcolor;
+                        //nodeN3a.SetAttribute("R", colorR.ToString());
+                        //nodeN3a.SetAttribute("G", colorG.ToString());
+                        //nodeN3a.SetAttribute("B", colorB.ToString());
+                        //
+                        XmlElement nodeN5 = appstyleDoc.CreateElement("fontbold");
+                        nodeN.AppendChild(nodeN5);
+                        nodeN5.InnerText = fontbold;
+                        //
+                        XmlElement nodeN6 = appstyleDoc.CreateElement("fontitalic");
+                        nodeN.AppendChild(nodeN6);
+                        nodeN6.InnerText = fontitalic;
+                        //
+                        XmlElement nodeN7 = appstyleDoc.CreateElement("fontunderline");
+                        nodeN.AppendChild(nodeN7);
+                        nodeN7.InnerText = fontunderline;
+                        //
+                        //XmlElement nodeN8 = appstyleDoc.CreateElement("bgcolor");
+                        //nodeN.AppendChild(nodeN8);
+                        //nodeN8.InnerText = bgcolor;
+                        //nodeN8.SetAttribute("R", bgcolorR.ToString());
+                        //nodeN8.SetAttribute("G", bgcolorG.ToString());
+                        //nodeN8.SetAttribute("B", bgcolorB.ToString());
+                        //
+                        XmlElement nodeN8a = appstyleDoc.CreateElement("bgcolorindex");
+                        nodeN.AppendChild(nodeN8a);
+                        nodeN8a.InnerText = bgcolorindex;
+                        //
+                        XmlElement nodeN9 = appstyleDoc.CreateElement("bordertop");
+                        nodeN.AppendChild(nodeN9);
+                        nodeN9.InnerText = bordertop;
+                        XmlElement nodeN9a = appstyleDoc.CreateElement("borderweighttop");
+                        nodeN.AppendChild(nodeN9a);
+                        nodeN9a.InnerText = borderweighttop;
+                        //
+                        XmlElement nodeN10 = appstyleDoc.CreateElement("borderbot");
+                        nodeN.AppendChild(nodeN10);
+                        nodeN10.InnerText = borderbot;
+                        XmlElement nodeN10a = appstyleDoc.CreateElement("borderweightbot");
+                        nodeN.AppendChild(nodeN10a);
+                        nodeN10a.InnerText = borderweightbot;
+                        //
+                        XmlElement nodeN11 = appstyleDoc.CreateElement("borderleft");
+                        nodeN.AppendChild(nodeN11);
+                        nodeN11.InnerText = borderleft;
+                        XmlElement nodeN11a = appstyleDoc.CreateElement("borderweightleft");
+                        nodeN.AppendChild(nodeN11a);
+                        nodeN11a.InnerText = borderweightleft;
+                        //
+                        XmlElement nodeN12 = appstyleDoc.CreateElement("borderright");
+                        nodeN.AppendChild(nodeN12);
+                        nodeN12.InnerText = borderright;
+                        XmlElement nodeN12a = appstyleDoc.CreateElement("borderweightright");
+                        nodeN.AppendChild(nodeN12a);
+                        nodeN12a.InnerText = borderweightright;
+                        //
+                        XmlElement nodeN13 = appstyleDoc.CreateElement("warptext");
+                        nodeN.AppendChild(nodeN13);
+                        nodeN13.InnerText = warptext;
+                        //
+                        XmlElement nodeN14 = appstyleDoc.CreateElement("Halignment");
+                        nodeN.AppendChild(nodeN14);
+                        nodeN14.InnerText = Halignment;
+                        //
+                        XmlElement nodeN15 = appstyleDoc.CreateElement("Valignment");
+                        nodeN.AppendChild(nodeN15);
+                        nodeN15.InnerText = Valignment;
+                        //
+                        XmlElement nodeN16 = appstyleDoc.CreateElement("mergecell");
+                        nodeN.AppendChild(nodeN16);
+                        nodeN16.InnerText = mergecell;
+                        //
+                        XmlElement nodeN17 = appstyleDoc.CreateElement("mergecellcount");
+                        nodeN.AppendChild(nodeN17);
+                        nodeN17.InnerText = mergecellcount;
+                        //
+                        XmlElement nodeN18 = appstyleDoc.CreateElement("nomberformat");
+                        nodeN.AppendChild(nodeN18);
+                        nodeN18.InnerText = nomberformat;
+                        //
+                        XmlElement nodeN19 = appstyleDoc.CreateElement("locked");
+                        nodeN.AppendChild(nodeN19);
+                        nodeN19.InnerText = locked;
+                        //
+                        XmlElement nodeN20 = appstyleDoc.CreateElement("formulahidden");
+                        nodeN.AppendChild(nodeN20);
+                        nodeN20.InnerText = formulahidden;
+                        //
+                        XmlElement nodeN21 = appstyleDoc.CreateElement("colwidth");
+                        nodeN.AppendChild(nodeN21);
+                        nodeN21.InnerText = colwidth;
+                        //
+                        XmlElement nodeN22 = appstyleDoc.CreateElement("rowheight");
+                        nodeN.AppendChild(nodeN22);
+                        nodeN22.InnerText = rowheight;
+                    }
+
+                }
+                nbstyle.SetAttribute("NB", (nb-1).ToString());//Total style number
+            }
+            ////////////////////////////////save file dialogue////////////
+            SaveFileDialog SaveFileDialog2 = new SaveFileDialog();
+            SaveFileDialog2.InitialDirectory = "D:\\appstyle22.xml";
+            SaveFileDialog2.Filter = "XML Fichier .xml|*.xml|All files (*.*)|*.*";
+            //OpenFileDialog1.FilterIndex = 2;
+            //SaveFileDialog2.RestoreDirectory = true;
+            SaveFileDialog2.ShowDialog();
+            string savenom = SaveFileDialog2.FileName.ToString();
+
+
+            appstyleDoc.Save(savenom);
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            MessageBox.Show("jobs done " + tim + " seconds used\r\n" + "nom du fichier: " + savenom);
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //
+        ////Xml lire
+        //
+        private void Xmllire_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OpenFileDialog1 = new OpenFileDialog();
+            OpenFileDialog1.FileName = fileAstyler;
+            OpenFileDialog1.InitialDirectory = "D:\\ptw\\";
+            OpenFileDialog1.Filter = "Excel Files .xls|*.xls|ptw files .ptw|*.ptw|All files (*.*)|*.*";
+            //OpenFileDialog1.FilterIndex = 2;
+            OpenFileDialog1.RestoreDirectory = true;
+            if (OpenFileDialog1.FileName == "")
+            {
+                OpenFileDialog1.ShowDialog();
+            }
+
+            ////////////////open excel////////////////////////
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlApp.DisplayAlerts = false;
+
+
+            string openfilex = OpenFileDialog1.FileName.ToString();
+            xlWorkBook = xlApp.Workbooks.Open(openfilex, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            //Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets[1];
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            //////////////////////////////open le fichier style XML//////////////////////
+            //OpenFileDialog OpenFileDialog2 = new OpenFileDialog();
+            //OpenFileDialog2.InitialDirectory = "D:\\ptw\\";
+            //OpenFileDialog2.Filter = "XML fichier .xml|*.xml";
+            //OpenFileDialog2.ShowDialog();
+            //stylexml = OpenFileDialog2.FileName.ToString();
+
+            if (textBox2.Text != null)
+                stylexml = textBox2.Text;
+            else
+                MessageBox.Show("Veuillez choiser le fichier style en format XML");
+
+
+            XmlDocument appstyleDoc = new XmlDocument();
+            appstyleDoc.Load(stylexml);
+            //appstyleDoc.Load("D:\\appstyle22.xml");
+
+            /////////////////////////////////////set palette couleur///////////////////////////
+            xlWorkBook.ResetColors();
+            XmlElement indexxmlelement = appstyleDoc.DocumentElement;
+            XmlNodeList indexstylenodelist = indexxmlelement.SelectNodes("//palette");
+            XmlNode indexstylenode = indexstylenodelist.Item(0);
+
+            for (int nindex = 1; nindex <= 56; nindex++)
+            {
+                string valeurindex = indexstylenode.SelectNodes("index" + nindex).Item(0).InnerText.ToString();
+                int valeur2index = Convert.ToInt32(valeurindex);
+                xlWorkBook.set_Colors(nindex, valeur2index);
+            }
+            range.EntireRow.Font.Size = 8;
+            //range.Rows.AutoFit();
+            //Excel.Range rangemasquer = xlWorkSheet.UsedRange.get_Range("A1", "A14") as Excel.Range;
+            //rangemasquer.EntireRow.Hidden = true;
+            ////////////////////////////////////////////////////////////////////////////////////
+
+            int rCnt = 0;
+            int cCnt = 0;
+            //int col = 0;
+            int col15000 = 0;
+            rCnt = range.Rows.Count;
+
+            for (cCnt = 1; cCnt <= range.Columns.Count; cCnt++)
+            {
+                string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
+                if (Regex.Equals(valuecellabs, "6000"))
+                {
+                    col15000 = cCnt;
+                    break;
+                }
+            }
+            ///////////////////////////////////construit tableaux style///////////MAX 100///////////////
+            XmlElement nbstyle = appstyleDoc.DocumentElement;
+            XmlNodeList nbstylelist = indexxmlelement.SelectNodes("//nbstyle");
+            XmlNode nbstylenode = nbstylelist.Item(0);
+
+            string nbtotal = nbstylenode.Attributes["NB"].InnerText.ToString();
+            int nbtotalint = Convert.ToInt32(nbtotal);
+            string[] tablestyle = new string[100];
+            for (int nbs = 1; nbs <= nbtotalint; nbs++)
+            {
+                tablestyle[nbs] = nbstylenode.SelectNodes("nbstyle" + nbs).Item(0).InnerText.ToString();
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+            int row = 1;
+            string colcount = "";
+            int time1 = System.Environment.TickCount;
+
+            for (row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col15000]);
+                for (int nbs = 1; nbs <= nbtotalint; nbs++)
+                {
+                    if (Regex.Equals(value, tablestyle[nbs]))
+                    {
+                        XmlNode xstyle = appstyleDoc.SelectSingleNode("//style" + tablestyle[nbs]);
+                        if (xstyle != null)
+                        {
+                            colcount = (xstyle.SelectSingleNode("col")).InnerText;
+                        }
+                        int colcountx = Convert.ToInt32(colcount);
+                        for (int colc = 1; colc <= colcountx; colc++)
+                        {
+                            XmlElement xmlelement = appstyleDoc.DocumentElement;
+                            XmlNodeList stylenodelist = xmlelement.SelectNodes("//style" + tablestyle[nbs] + "." + colc);
+                            XmlNode stylenode = stylenodelist.Item(0);
+                            string fontname = stylenode.SelectNodes("font").Item(0).InnerText.ToString();
+                            string fontsize = stylenode.SelectNodes("fontsize").Item(0).InnerText.ToString();
+                            //string colorR = stylenode.SelectNodes("fontcolor").Item(0).Attributes["R"].InnerText.ToString();
+                            //int colorBx = Convert.ToInt32(colorB);
+                            //int fontcolor = (colorBx * 65536) + (colorGx * 256) + colorRx;
+                            //string fontcolor = stylenode.SelectNodes("fontcolor").Item(0).InnerText.ToString();
+                            string fontcolorindex = stylenode.SelectNodes("fontcolorindex").Item(0).InnerText.ToString();
+
+                            string fontbold = stylenode.SelectNodes("fontbold").Item(0).InnerText.ToString();
+                            string fontitalic = stylenode.SelectNodes("fontitalic").Item(0).InnerText.ToString();
+                            string fontunderline = stylenode.SelectNodes("fontunderline").Item(0).InnerText.ToString();
+
+                            string bgcolorindex = stylenode.SelectNodes("bgcolorindex").Item(0).InnerText.ToString();
+                            string bordertop = stylenode.SelectNodes("bordertop").Item(0).InnerText.ToString();
+                            string borderbot = stylenode.SelectNodes("borderbot").Item(0).InnerText.ToString();
+                            string borderleft = stylenode.SelectNodes("borderleft").Item(0).InnerText.ToString();
+                            string borderright = stylenode.SelectNodes("borderright").Item(0).InnerText.ToString();
+                            string borderweighttop = stylenode.SelectNodes("borderweighttop").Item(0).InnerText.ToString();
+                            string borderweightbot = stylenode.SelectNodes("borderweightbot").Item(0).InnerText.ToString();
+                            string borderweightleft = stylenode.SelectNodes("borderweightleft").Item(0).InnerText.ToString();
+                            string borderweightright = stylenode.SelectNodes("borderweightright").Item(0).InnerText.ToString();
+
+                            string warptext = stylenode.SelectNodes("warptext").Item(0).InnerText.ToString();
+                            string Halignment = stylenode.SelectNodes("Halignment").Item(0).InnerText.ToString();
+                            string Valignment = stylenode.SelectNodes("Valignment").Item(0).InnerText.ToString();
+                            string mergecell = stylenode.SelectNodes("mergecell").Item(0).InnerText.ToString();
+                            string mergecellcount = stylenode.SelectNodes("mergecellcount").Item(0).InnerText.ToString();
+                            int intmergecellcount = Convert.ToInt32(mergecellcount);
+
+                            string nomberformat = stylenode.SelectNodes("nomberformat").Item(0).InnerText.ToString();
+                            string locked = stylenode.SelectNodes("locked").Item(0).InnerText.ToString();
+                            string formulahidden = stylenode.SelectNodes("formulahidden").Item(0).InnerText.ToString();
+                            string colwidth = stylenode.SelectNodes("colwidth").Item(0).InnerText.ToString();
+                            string rowheight = stylenode.SelectNodes("rowheight").Item(0).InnerText.ToString();
+                            ///////////////////////////////////merge process///////////////////////////////////////////
+                            if (mergecell == "True")
+                            {
+                                if (intmergecellcount > 1)
+                                {
+                                    Excel.Range rangemerge = xlWorkSheet.UsedRange.get_Range(xlWorkSheet.Cells[row, colc], xlWorkSheet.Cells[row, colc + intmergecellcount - 1]) as Excel.Range;
+                                    rangemerge.Merge(false);
+                                    //rangemerge.HorizontalAlignment = 1;
+
+                                    for (int countarea = 1; countarea < intmergecellcount; countarea++)
+                                    {
+                                        XmlElement mergexmlelement = appstyleDoc.DocumentElement;
+                                        int mergecolindex = colc + countarea;
+                                        XmlNodeList mergestylenodelist = mergexmlelement.SelectNodes("//style" + tablestyle[nbs] + "." + mergecolindex);
+                                        XmlNode mergestylenode = mergestylenodelist.Item(0);
+                                        mergestylenode.SelectNodes("mergecell").Item(0).InnerText = "False";
+                                        appstyleDoc.Save(stylexml);
+                                    }
+                                }
+                            }
+                            /////////////////////////////////////appliquer sur fichier EXCEL//////////////////////////////
+                            Excel.Range rangeDelx = xlWorkSheet.Cells[row, colc] as Excel.Range;
+                            rangeDelx.Font.Name = fontname;
+                            rangeDelx.Font.Size = Convert.ToInt32(fontsize);
+                            //rangeDelx.Font.Color = Convert.ToInt32(fontcolor);
+                            rangeDelx.Font.ColorIndex = Convert.ToInt32(fontcolorindex);
+                            //rangeDelx.Value2 = fontcolorindex;
+
+                            rangeDelx.Font.Bold = (fontbold=="True");
+                            rangeDelx.Font.Italic = (fontitalic == "True");
+                            rangeDelx.Font.Underline = Convert.ToInt32(fontunderline);
+                            //rangeDelx.Value2 += "bgcolor" + bgcolorindex;
+                            rangeDelx.Interior.ColorIndex = Convert.ToInt32(bgcolorindex);
+
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeTop].Weight = Convert.ToInt32(borderweighttop);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeTop].LineStyle = Convert.ToInt32(bordertop);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Convert.ToInt32(borderweightbot);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Convert.ToInt32(borderbot);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeLeft].Weight = Convert.ToInt32(borderweightleft);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeLeft].LineStyle = Convert.ToInt32(borderleft);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].Weight = Convert.ToInt32(borderweightright);
+                            rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Convert.ToInt32(borderright);
+                            
+                            rangeDelx.WrapText = (warptext == "True");
+                            rangeDelx.HorizontalAlignment = Convert.ToInt32(Halignment);
+                            rangeDelx.VerticalAlignment = Convert.ToInt32(Valignment);
+
+                            /////////////////////////////////////////////////////////////////////////////////////////
+                            mergecellcount = stylenode.SelectNodes("mergecellcount").Item(0).InnerText.ToString();
+                            //ne peut pas modifier les cellules fusionner
+                            if (mergecellcount == "False")
+                            {
+                                rangeDelx.NumberFormat = nomberformat;
+                                rangeDelx.Locked = (locked == "True");
+                                rangeDelx.Locked = (formulahidden == "True");
+                            }
+                            ///////////////////////////////////////////////////////////////////////////////////////////
+                            rangeDelx.ColumnWidth = Convert.ToDouble(colwidth);
+                            rangeDelx.RowHeight = Convert.ToDouble(rowheight);
+                        }
+                    }
+                }
+            }
+            xlApp.ActiveWindow.DisplayGridlines = false;
+            //range.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
+            //range.Rows.AutoFit();
+            //Excel.Range rangemasquer2 = xlWorkSheet.UsedRange.get_Range("A1", "A14") as Excel.Range;
+            //rangemasquer2.EntireRow.Hidden = true;
+
+
+            Excel.Range rangeDelete = xlWorkSheet.UsedRange.get_Range("L1", xlWorkSheet.Cells[1, xlWorkSheet.UsedRange.Columns.Count]) as Excel.Range;
+            Excel.Range rangeDelete2 = xlWorkSheet.Cells[xlWorkSheet.UsedRange.Rows.Count, 1] as Excel.Range;
+            Excel.Range rangeDelete3 = xlWorkSheet.Cells[xlWorkSheet.UsedRange.Rows.Count - 1, 1] as Excel.Range;
+            rangeDelete.EntireColumn.Delete(Excel.XlDeleteShiftDirection.xlShiftToLeft);
+            rangeDelete2.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+            rangeDelete3.EntireRow.Delete(Excel.XlDeleteShiftDirection.xlShiftUp);
+
+
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            //MessageBox.Show("jobs done " + tim + " seconds used");
+
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+        //Xml Modifier
+        private void Xmlmodifier_Click(object sender, EventArgs e)
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = true;
+            xlWorkBook = xlApp.Workbooks.Open("D:\\ptw\\appstyleIndex.xls", 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, true, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Feuil1");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            object[,] values = (object[,])range.Value2;
+
+            XmlDocument appstyleDoc = new XmlDocument();
+            appstyleDoc.Load("D:\\appstyle22.xml");
+
+
+            int col = 11;
+            int row = 1;
+            int styleflag = 1;
+            string colcount = "";
+            int time1 = System.Environment.TickCount;
+
+            //////////index palette////////////////////////////////////////////////////////////////////////
+            XmlElement indexxmlelement = appstyleDoc.DocumentElement;
+            XmlNodeList indexstylenodelist = indexxmlelement.SelectNodes("//palette");
+            XmlNode indexstylenode = indexstylenodelist.Item(0);
+            for (int nindex = 1; nindex <= 56; nindex++)
+            {
+                indexstylenode.SelectNodes("index" + nindex).Item(0).InnerText = xlWorkBook.get_Colors(nindex).ToString();
+                int colorindexox = Convert.ToInt32(xlWorkBook.get_Colors(nindex).ToString());
+                int colorindexB = colorindexox / 65536;
+                int colorindexG = (colorindexox % 65536) / 256;
+                int colorindexR = (colorindexox % 65536) % 256;
+                indexstylenode.SelectNodes("index" + nindex).Item(0).Attributes["R"].InnerText = colorindexR.ToString();
+                indexstylenode.SelectNodes("index" + nindex).Item(0).Attributes["G"].InnerText = colorindexG.ToString();
+                indexstylenode.SelectNodes("index" + nindex).Item(0).Attributes["B"].InnerText = colorindexB.ToString();
+            }
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+            //for (int rowx = 1; rowx <= 56; rowx++)
+            //{
+            //    string indexx = xlWorkBook.get_Colors(rowx).ToString();
+            //    Excel.Range rangeindex1 = xlWorkSheet.Cells[rowx, 1] as Excel.Range;
+            //    rangeindex1.Value2 = "xlWorkBook.set_Colors("+rowx+", "+indexx+");";
+            //    //Excel.Range rangeindex2 = xlWorkSheet.Cells[rowx, 2] as Excel.Range;
+            //}
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+            for (row = 1; row <= values.GetUpperBound(0); row++)
+            {
+                string value = Convert.ToString(values[row, col]);
+                for (styleflag = 1; styleflag <= 4; styleflag++)
+                {
+                    if (Regex.Equals(value, styleflag.ToString()))
+                    {
+                        XmlNode xstyle = appstyleDoc.SelectSingleNode("//style" + styleflag);
+                        if (xstyle != null)
+                        {
+                            colcount = (xstyle.SelectSingleNode("col")).InnerText;
+                        }
+                        int colcountx = Convert.ToInt32(colcount);
+
+                        for (int colc = 1; colc <= colcountx; colc++)
+                        {
+                            XmlElement xmlelement = appstyleDoc.DocumentElement;
+                            XmlNodeList stylenodelist = xmlelement.SelectNodes("//style" + styleflag + "." + colc);
+                            XmlNode stylenode = stylenodelist.Item(0);
+
+
+                            Excel.Range rangeDelx = xlWorkSheet.Cells[row, colc] as Excel.Range;
+                            string fontname = rangeDelx.Font.Name.ToString();
+                            string fontsize = rangeDelx.Font.Size.ToString();
+                            string fontcolor = rangeDelx.Font.Color.ToString();
+                            int fontcnumber = Convert.ToInt32(fontcolor);
+                            int colorB = fontcnumber / 65536;
+                            int colorG = (fontcnumber % 65536) / 256;
+                            int colorR = (fontcnumber % 65536) % 256;
+                            string fontcolorindex = rangeDelx.Font.ColorIndex.ToString();
+                            string fontstyle = rangeDelx.Font.FontStyle.ToString();
+                            string fontbold = rangeDelx.Font.Bold.ToString();
+                            string fontitalic = rangeDelx.Font.Italic.ToString();
+                            string fontunderline = rangeDelx.Font.Underline.ToString();
+                            string bgcolor = rangeDelx.Interior.Color.ToString();
+                            int bgcnumber = Convert.ToInt32(bgcolor);
+                            int bgcolorB = bgcnumber / 65536;
+                            int bgcolorG = (bgcnumber % 65536) / 256;
+                            int bgcolorR = (bgcnumber % 65536) % 256;
+
+                            string bgcolorindex = rangeDelx.Interior.ColorIndex.ToString();
+                            string bordertop = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeTop].LineStyle.ToString();
+                            string borderbot = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle.ToString();
+                            string borderleft = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeLeft].LineStyle.ToString();
+                            string borderright = rangeDelx.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle.ToString();
+                            stylenode.SelectNodes("font").Item(0).InnerText = fontname;
+                            stylenode.SelectNodes("fontsize").Item(0).InnerText = fontsize;
+                            //font color
+                            stylenode.SelectNodes("fontcolor").Item(0).InnerText = fontcolor;
+                            stylenode.SelectNodes("fontcolor").Item(0).Attributes["R"].InnerText = colorR.ToString();
+                            stylenode.SelectNodes("fontcolor").Item(0).Attributes["G"].InnerText = colorG.ToString();
+                            stylenode.SelectNodes("fontcolor").Item(0).Attributes["B"].InnerText = colorB.ToString();
+                            stylenode.SelectNodes("fontcolorindex").Item(0).InnerText = fontcolorindex;
+                            //font style
+                            stylenode.SelectNodes("fontbold").Item(0).InnerText = fontbold;
+                            stylenode.SelectNodes("fontitalic").Item(0).InnerText = fontitalic;
+                            stylenode.SelectNodes("fontunderline").Item(0).InnerText = fontunderline;
+                            //bgcolor
+                            stylenode.SelectNodes("bgcolor").Item(0).InnerText = bgcolor;
+                            stylenode.SelectNodes("bgcolor").Item(0).Attributes["R"].InnerText = bgcolorR.ToString();
+                            stylenode.SelectNodes("bgcolor").Item(0).Attributes["G"].InnerText = bgcolorG.ToString();
+                            stylenode.SelectNodes("bgcolor").Item(0).Attributes["B"].InnerText = bgcolorB.ToString();
+                            stylenode.SelectNodes("bgcolorindex").Item(0).InnerText = bgcolorindex;
+
+                            stylenode.SelectNodes("bordertop").Item(0).InnerText = bordertop;
+                            stylenode.SelectNodes("borderbot").Item(0).InnerText = borderbot;
+                            stylenode.SelectNodes("borderleft").Item(0).InnerText = borderleft;
+                            stylenode.SelectNodes("borderright").Item(0).InnerText = borderright;
+
+                        }
+                    }
+                }
+            }
+            ///////////////////////////////////////////////////////////////////////////
+            System.DateTime currentTime = new System.DateTime();
+            currentTime = System.DateTime.Now;
+            System.IO.File.Delete("D:\\appstyleclient.xml");
+            string appstylestring = "D:\\appstyleclient.xml";
+            appstyleDoc.Save(appstylestring);
+            int time2 = System.Environment.TickCount;
+            int times = time2 - time1;
+            string tim = Convert.ToString(Convert.ToDecimal(times) / 1000);
+            MessageBox.Show("jobs done " + tim + " seconds used");
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
+        }
+
+        private void Parcourir_Click(object sender, EventArgs e)
+        {
+            String lesfichier = "";
+            OpenFileDialog OpenFileDialogx = new OpenFileDialog();
+            OpenFileDialogx.InitialDirectory = "D:\\ptw\\";
+            OpenFileDialogx.Filter = "Excel Files .xls|*.xls|ptw files .ptw|*.ptw|All files (*.*)|*.*";
+            OpenFileDialogx.FilterIndex = 2;
+            OpenFileDialogx.RestoreDirectory = true;
+            OpenFileDialogx.Multiselect = true;
+
+            if (OpenFileDialogx.ShowDialog() == DialogResult.OK)
+            {
+                foreach (string MyFileName in OpenFileDialogx.FileNames)
+                {
+                    //lesfichier += MyFileName + "\r\n";
+                    lesfichier += MyFileName;
+                }
+            }
+            textBox1.Text = lesfichier;
+        }
+        //Repertoire source pour le fichier à subdiviser
+        private void button27_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog OpenFileDialogx = new OpenFileDialog();
+            OpenFileDialogx.InitialDirectory = "D:\\ptw\\";
+            OpenFileDialogx.Filter = "XML fichier .xml|*.xml";
+            OpenFileDialogx.RestoreDirectory = true;
+            OpenFileDialogx.ShowDialog();
+            textBox2.Text = OpenFileDialogx.FileName;
+        }
+        //Repertoire Destitation pour les fichier subdiviser
+        private void button28_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog FolderBrowserDialogx = new FolderBrowserDialog();
+            FolderBrowserDialogx.RootFolder = Environment.SpecialFolder.MyComputer;
+            FolderBrowserDialogx.ShowDialog();
+            textBox3.Text = FolderBrowserDialogx.SelectedPath.ToString();
+        }
+        //Repertoire source pour les fichier à fusionner
+        private void button31_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog FolderBrowserDialogx = new FolderBrowserDialog();
+            FolderBrowserDialogx.RootFolder = Environment.SpecialFolder.MyComputer;
+            FolderBrowserDialogx.ShowDialog();
+            textBox4.Text = FolderBrowserDialogx.SelectedPath.ToString();
+        }
+        //Repertoire Destitation pour les fichier fusionner
+        private void button32_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog FolderBrowserDialogx = new FolderBrowserDialog();
+            FolderBrowserDialogx.RootFolder = Environment.SpecialFolder.MyComputer;
+            FolderBrowserDialogx.ShowDialog();
+            textBox5.Text = FolderBrowserDialogx.SelectedPath.ToString();
+        }
+        //choiser les fichiers ptw pour fusionner
+        private void button33_Click(object sender, EventArgs e)
+        {
+            if (checkBox6.Checked == false && checkBox7.Checked == false && checkBox8.Checked == false && checkBox9.Checked == false && checkBox10.Checked == false && checkBox11.Checked == false && checkBox3.Checked == false)
+            {
+                checkBox6.Checked = true;
+                checkBox7.Checked = true;
+                checkBox8.Checked = true;
+                checkBox9.Checked = true;
+                checkBox10.Checked = true;
+                checkBox11.Checked = true;
+                checkBox3.Checked = true;
+            }
+            else
+            {
+                checkBox6.Checked = false;
+                checkBox7.Checked = false;
+                checkBox8.Checked = false;
+                checkBox9.Checked = false;
+                checkBox10.Checked = false;
+                checkBox11.Checked = false;
+                checkBox3.Checked = false;
+            }
+        }
+        //supprimer style pour fusionner
+        private void button34_Click(object sender, EventArgs e)
+        {
+            if (checkBox12.Checked == false && checkBox13.Checked == false && checkBox14.Checked == false && checkBox15.Checked == false && checkBox16.Checked == false && checkBox17.Checked == false && checkBox18.Checked == false)
+            {
+                checkBox12.Checked = true;
+                checkBox13.Checked = true;
+                checkBox14.Checked = true;
+                checkBox15.Checked = true;
+                checkBox16.Checked = true;
+                checkBox17.Checked = true;
+                checkBox18.Checked = true;
+            }
+            else
+            {
+                checkBox12.Checked = false;
+                checkBox13.Checked = false;
+                checkBox14.Checked = false;
+                checkBox15.Checked = false;
+                checkBox16.Checked = false;
+                checkBox17.Checked = false;
+                checkBox18.Checked = false;
+            }
+        }
+        //preparation nota-pme
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            checkBox2.Checked = true;
+            checkBox5.Checked = false;
+            checkBox4.Checked = true;
+            checkBox1.Checked = true;
+        }
+        //preparation preface
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+
+            checkBox2.Checked = false;
+            checkBox5.Checked = true;
+            checkBox4.Checked = false;
+            checkBox1.Checked = false;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            string filePath = "D:\\ptw\\ExcelVSTO.ini";
+            IniFile iniFile = new IniFile(filePath);
+            iniFile.WriteInivalue("dossier", "pathsource", textBox1.Text.ToString());
+            iniFile.WriteInivalue("dossier", "pathxml", textBox2.Text.ToString());
+            iniFile.WriteInivalue("dossier", "pathdestinationdivi", textBox3.Text.ToString());
+            iniFile.WriteInivalue("dossier", "pathdestinationfusion", textBox5.Text.ToString());
+        }
+
+        private void checkBox4_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox4.Checked == true) 
+            {
+                textBox3.Enabled = true;
+                button28.Enabled = true;
+            }
+            if (checkBox4.Checked == false)
+            {
+                textBox3.Enabled = false;
+                button28.Enabled = false;
+            }
+        }
+
+
+
+
+
+    }
+}
