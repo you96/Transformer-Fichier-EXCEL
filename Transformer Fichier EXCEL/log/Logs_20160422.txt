@@ -1,0 +1,14 @@
+2016-04-22 14:41:21,553 INFO  - ==> Début 22.4.2016 à 14.41.21
+2016-04-22 14:41:21,585 INFO  - ==> Démarrage des processus... 
+2016-04-22 14:41:21,679 INFO  - ==> Start fusion des *.ptw 
+2016-04-22 14:43:07,321 INFO  - Travail terminé 0 heure(s) 1 minutes 45 s
+2016-04-22 14:43:07,346 INFO  - ==> Terminé      Temps total =========== 0 heures 1 minutes 45 ===========
+2016-04-22 14:46:51,180 INFO  - ==> Début 22.4.2016 à 14.46.51
+2016-04-22 14:46:51,204 INFO  - ==> Démarrage des processus... 
+2016-04-22 14:46:51,407 INFO  - ==> Start fusion des *.ptw 
+2016-04-22 14:48:37,725 INFO  - Travail terminé 0 heure(s) 1 minutes 46 s
+2016-04-22 14:48:37,741 INFO  - ==> Start Création de PrefaceNP.xlsx
+2016-04-22 15:27:21,051 INFO  - Travail terminé : 0 heures 38 minutes 43 s
+2016-04-22 15:29:32,848 INFO  - ==> Start Protection des cellules 
+2016-04-22 15:49:43,589 INFO  - Protection des cellules OK : 0 heures 20 minutes 10 s
+2016-04-22 15:49:43,683 INFO  - ==> Start Raz PrefaceNP : le fichier sera sauvé dans D:\ptw\notepme
