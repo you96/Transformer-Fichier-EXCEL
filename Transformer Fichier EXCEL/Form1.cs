@@ -2493,6 +2493,7 @@ namespace TransformEXCEL
                 button29_Click(sender, e);
                 Historique84000();
                 formatRowHiddenComptesAnnuel(sender, e);
+                addcolumemaxvaluecellforhis();
                 int time2 = System.Environment.TickCount;
                 int times = (time2 - time1) / 1000;
                 int hours = times / 3600;
@@ -2509,7 +2510,7 @@ namespace TransformEXCEL
                 errorflag = true;
             }
         }
-
+        
         private void formarthistcalculs()
         {
             Excel.Application xlApp;
@@ -6468,6 +6469,7 @@ namespace TransformEXCEL
                             errorflag = true;
                         }
                     }
+                    //addcolumemaxvaluecellforhis();
                     int time2x = System.Environment.TickCount;
                     int timesx = (time2x - time1x)/1000;
                     string timcIndex = "";
@@ -17273,51 +17275,58 @@ namespace TransformEXCEL
                     string[] namestable = { "CmpcWacc", "CalculFCF", "DiscountedFCF", "MéthodesMixtes","Multiples","TransactionsComparables","AutresCapitalisations","GordonShapiroBates","Goodwill","PatrimonialAncAncc", "APNNE"};
                     foreach (string name in namestable)
                     {
-                        Excel.Worksheet xlworksheet = (Excel.Worksheet)xlworkbook.Worksheets.get_Item(name + " NPME");
-                        Excel.Worksheet xlstylesheet = (Excel.Worksheet)xlapp.Worksheets.get_Item(name);
-                        Excel.Range rangeStyle = xlstylesheet.UsedRange;
-                        Excel.Range rangeToChange = xlworksheet.UsedRange;
-                        rangeToChange.ClearFormats();
-                        object[,] ValuesStyle = (object[,])rangeStyle.Value2;
-                        object[,] values = (object[,])rangeToChange.Value2;
-                        int col90001000 = 1;
-                        for (int i = 1; i < rangeToChange.Columns.Count; i++)
+                        try
                         {
-                            if (values[rangeToChange.Rows.Count, i] != null)
+                            Excel.Worksheet xlworksheet = (Excel.Worksheet)xlworkbook.Worksheets.get_Item(name + " NPME");
+                            Excel.Worksheet xlstylesheet = (Excel.Worksheet)xlworkbook.Worksheets.get_Item(name);
+                            Excel.Range rangeStyle = xlstylesheet.UsedRange;
+                            Excel.Range rangeToChange = xlworksheet.UsedRange;
+                            rangeToChange.ClearFormats();
+                            object[,] ValuesStyle = (object[,])rangeStyle.Value2;
+                            object[,] values = (object[,])rangeToChange.Value2;
+                            int col90001000 = 1;
+                            for (int i = 1; i < rangeToChange.Columns.Count; i++)
                             {
-                                if (values[rangeToChange.Rows.Count, i].ToString() == "1000" || values[rangeToChange.Rows.Count - 1, i].ToString() == "1000")
+                                if (values[rangeToChange.Rows.Count, i] != null)
                                 {
-                                    col90001000 = i;
-                                    break;
+                                    if (values[rangeToChange.Rows.Count, i].ToString() == "1000" || values[rangeToChange.Rows.Count - 1, i].ToString() == "1000")
+                                    {
+                                        col90001000 = i;
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        rangeToChange.ClearFormats();
-                        for (int i = 1; i <= rangeStyle.Rows.Count; i++)
-                        {
-                            Excel.Range rangeCherche = rangeStyle.get_Range("A" + i, "A" + i);
-
-                            if (rangeCherche.Value2 != null)
+                            rangeToChange.ClearFormats();
+                            for (int i = 1; i <= rangeStyle.Rows.Count; i++)
                             {
-                                string cherche = rangeCherche.Value2.ToString();
-                                string fontSize = "0";
-                                for (int t = 1; t < rangeToChange.Rows.Count; t++)
+                                Excel.Range rangeCherche = rangeStyle.get_Range("A" + i, "A" + i);
+
+                                if (rangeCherche.Value2 != null)
                                 {
-                                    if (values[t, col90001000] != null)
+                                    string cherche = rangeCherche.Value2.ToString();
+                                    string fontSize = "0";
+                                    for (int t = 1; t < rangeToChange.Rows.Count; t++)
                                     {
-                                        if (cherche == values[t, col90001000].ToString())
+                                        if (values[t, col90001000] != null)
                                         {
-                                            Excel.Range rangeCopy = rangeStyle.get_Range("C" + i, "X" + i);
-                                            //Excel.Range range1 = rangeToChange.get_Range("B" + t, "Z" + t);
-                                            Excel.Range range1 = rangeToChange.get_Range("B" + t, "W" + t);//Jintao: try to figure out why x,y,z columns are having the same format with B,C,D 05112015
-                                            rangeCopy.Copy();
-                                            range1.PasteSpecial(Excel.XlPasteType.xlPasteFormats, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
-                                            range1.PasteSpecial(Excel.XlPasteType.xlPasteColumnWidths, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
-                                            range1.RowHeight = rangeCopy.RowHeight;
+                                            if (cherche == values[t, col90001000].ToString())
+                                            {
+                                                Excel.Range rangeCopy = rangeStyle.get_Range("C" + i, "X" + i);
+                                                //Excel.Range range1 = rangeToChange.get_Range("B" + t, "Z" + t);
+                                                Excel.Range range1 = rangeToChange.get_Range("B" + t, "W" + t);//Jintao: try to figure out why x,y,z columns are having the same format with B,C,D 05112015
+                                                rangeCopy.Copy();
+                                                range1.PasteSpecial(Excel.XlPasteType.xlPasteFormats, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+                                                range1.PasteSpecial(Excel.XlPasteType.xlPasteColumnWidths, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+                                                range1.RowHeight = rangeCopy.RowHeight;
+                                            }
                                         }
                                     }
                                 }
                             }
+                        }
+                        catch (Exception exxx)
+                        {
+                            logger.Error("sheetname:" + name + exxx.ToString());
                         }
                     }
                     xlworkbook.Save();
@@ -17417,77 +17426,261 @@ namespace TransformEXCEL
             try
             {
 
-                object misValue = System.Reflection.Missing.Value;
-                prefaceNP = @textBox12.Text + "\\preface.xlsx"; Excel.Application xlApp;
+                Excel.Application xlApp;
                 Excel.Workbook xlWorkBook;
+                 prefaceNP = @textBox12.Text.Trim() + "\\prefaceNP.xlsx";
+                object misValue = System.Reflection.Missing.Value;
                 xlApp = new Excel.ApplicationClass();
-                xlApp.Visible = false; ; xlApp.DisplayAlerts = false;
-                xlApp.ScreenUpdating = false;
+                xlApp.Visible = false; xlApp.DisplayAlerts = false;
+                xlApp.DisplayAlerts = false;
                 xlWorkBook = xlApp.Workbooks.Open(prefaceNP, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, false, false);
-                Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Comptes annuels");
-                Excel.Range rangeCompAnn = xlWorkSheet.UsedRange;
-                object[,] values = (object[,])rangeCompAnn.Value2;
-                object[,] formulas = (object[,])rangeCompAnn.Formula;
-                int rCnt = 0;
-                int cCnt = 0;
-                int col = 0;
-                int row9000 = 0;
-                rCnt = rangeCompAnn.Rows.Count;
-                for (int i = 1; i < rangeCompAnn.Rows.Count; i++)
-                {
-                    string valuecelasd = Convert.ToString(values[i, rangeCompAnn.Columns.Count]);
-                    if (Regex.Equals(valuecelasd, "9000"))
-                    {
-                        row9000 = i;
-                        break;
-                    }
-                }
-                for (cCnt = 1; cCnt <= rangeCompAnn.Columns.Count; cCnt++)
-                {
-                    string valuecellabs = Convert.ToString(values[rCnt, cCnt]);
-                    if (Regex.Equals(valuecellabs, "11000-1000"))
-                    {
-                        col = cCnt;
-                        break;
-                    }
-                }
-                string formulax = "";
-                if (formulas[row9000, col] != null && formulas[row9000, col].ToString() != "")
-                {
-                    formulax = formulas[row9000, col].ToString();
-                    if (formulax.Substring(0, 1) == "'")
-                        formulax = formulax.Substring(1);
-                }
-                Excel.Range rangecellx = xlWorkSheet.Cells[row9000, col] as Excel.Range;
-                rangecellx.Formula = formulax.Replace("if(and", "si(et").Replace("SI(ET", "SI(ET");
+                //hist
+                Excel.Worksheet xlWorkSheet = xlWorkBook.Worksheets[1] as Excel.Worksheet;
+                Excel.Range range = xlWorkSheet.UsedRange;
+                Excel.Range rangex1 = xlWorkSheet.Cells[1, 4] as Excel.Range;
+                Excel.Range rangex2 = xlWorkSheet.Cells[1, 5] as Excel.Range;
+                Excel.Range rangex3 = xlWorkSheet.Cells[1, 6] as Excel.Range;
+                //hist.refer
+                Excel.Worksheet xlWorkSheet2 = xlWorkBook.Worksheets["Hist.Refer"] as Excel.Worksheet;
+                int RowC = xlWorkSheet2.UsedRange.Rows.Count - 1;
+                CodeFinder cfRef;
+                cfRef = new CodeFinder(xlWorkBook, xlWorkSheet2);
+                string colC = cfRef.FindCodedColumnHeader("3000", xlWorkSheet2.UsedRange);
+                string colD = cfRef.FindCodedColumnHeader("3000-1000", xlWorkSheet2.UsedRange);
+                string colE = cfRef.FindCodedColumnHeader("3000-2000", xlWorkSheet2.UsedRange);
+                string colF = cfRef.FindCodedColumnHeader("4000", xlWorkSheet2.UsedRange);
+                string colG = cfRef.FindCodedColumnHeader("4000-1000", xlWorkSheet2.UsedRange);
+                string colH = cfRef.FindCodedColumnHeader("4000-2000", xlWorkSheet2.UsedRange);
+                string colI = cfRef.FindCodedColumnHeader("5000", xlWorkSheet2.UsedRange);
+                string colJ = cfRef.FindCodedColumnHeader("5000-1000", xlWorkSheet2.UsedRange);
+                string colK = cfRef.FindCodedColumnHeader("5000-2000", xlWorkSheet2.UsedRange);
+                Excel.Range rangeCc = xlWorkSheet2.UsedRange.get_Range(colC + "1", xlWorkSheet2.Cells[RowC, 3]) as Excel.Range;
+                Excel.Range rangeCc2 = xlWorkSheet2.UsedRange.get_Range(colD + "1", xlWorkSheet2.Cells[RowC, 4]) as Excel.Range;
+                Excel.Range rangeCc3 = xlWorkSheet2.UsedRange.get_Range(colE + "1", xlWorkSheet2.Cells[RowC, 5]) as Excel.Range;
+                Excel.Range rangeDc = xlWorkSheet2.UsedRange.get_Range(colF + "1", xlWorkSheet2.Cells[RowC, 6]) as Excel.Range;
+                Excel.Range rangeDc2 = xlWorkSheet2.UsedRange.get_Range(colG + "1", xlWorkSheet2.Cells[RowC, 7]) as Excel.Range;
+                Excel.Range rangeDc3 = xlWorkSheet2.UsedRange.get_Range(colH + "1", xlWorkSheet2.Cells[RowC, 8]) as Excel.Range;
+                Excel.Range rangeEc = xlWorkSheet2.UsedRange.get_Range(colI + "1", xlWorkSheet2.Cells[RowC, 9]) as Excel.Range;
+                Excel.Range rangeEc2 = xlWorkSheet2.UsedRange.get_Range(colJ + "1", xlWorkSheet2.Cells[RowC, 10]) as Excel.Range;
+                Excel.Range rangeEc3 = xlWorkSheet2.UsedRange.get_Range(colK + "1", xlWorkSheet2.Cells[RowC, 11]) as Excel.Range;
+                //hist.preface
+                Excel.Worksheet xlWorkSheetpre = xlWorkBook.Worksheets["Hist.Preface"] as Excel.Worksheet;
+                CodeFinder cfcol;
+                cfcol = new CodeFinder(xlWorkBook, xlWorkSheetpre);
+                //hist.calcule
+                Excel.Worksheet WorkSheetCalculs = xlWorkBook.Worksheets["Hist.Calculs"] as Excel.Worksheet;
+                Excel.Range rangexh1 = WorkSheetCalculs.Cells[1, 2] as Excel.Range;
+                //l'ordre de déclaration à respecter
+                string colcorrectif1 = "";
+                string colcorrectif2 = "";
+                CodeFinder cf;
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                //l'ordre de déclaration à respecter
+                //hist 1st year insert
+                string insert1 = cf.FindCodedColumnHeader("4000", range);
+                rangex1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                string insert12 = cf.FindCodedColumnHeader("4000", range);
+                rangex1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.preface insert 1st
+                string colDpre = cfcol.FindCodedColumnHeader("4000", xlWorkSheetpre.UsedRange);
+                string colEpre = cfcol.FindCodedColumnHeader("5000", xlWorkSheetpre.UsedRange);
+                Excel.Range rangeinsert1 = xlWorkSheetpre.UsedRange.get_Range(colDpre + "1", colEpre + "1") as Excel.Range;
+                rangeinsert1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.calcul insert 1st
+                //Jintao: change the formula from F to G
+                //rangexh1.EntireColumn.Replace("Hist.Preface!F", "Hist.Preface!G", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                rangexh1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                rangexh1.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist 1st cut
+                xlWorkSheet.get_Range("C23", "C" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Cut(xlWorkSheet.get_Range("E23"));
+                //hist.refer 1st cut
+                rangeCc.Cut(rangeCc3);
+                //hist.preface 1st cut
+                //hist 2ed insert
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                string insert2 = cf.FindCodedColumnHeader("5000", range);
+                rangex2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                string insert22 = cf.FindCodedColumnHeader("5000", range);
+                rangex2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.preface 2ed insert
+                string colHpre = cfcol.FindCodedColumnHeader("6000", xlWorkSheetpre.UsedRange);
+                string colIpre = cfcol.FindCodedColumnHeader("7000", xlWorkSheetpre.UsedRange);
+                Excel.Range rangeinsert2 = xlWorkSheetpre.UsedRange.get_Range(colHpre + "1", colIpre + "1") as Excel.Range;
+                rangeinsert2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.calculs 2ed insert
+                Excel.Range rangexh2 = WorkSheetCalculs.Cells[1, 6] as Excel.Range;
+                rangexh2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                rangexh2.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist 2ed cut
+                xlWorkSheet.get_Range("F23", "F" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Cut(xlWorkSheet.get_Range("H23"));
+                //hist.refer 2ed cut
+                rangeDc.Cut(rangeDc3);
+                //hist.preface 2ed cut
+                //hist 3ed insert
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                string insert3 = cf.FindCodedColumnHeader("6000", range);
+                rangex3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                string insert32 = cf.FindCodedColumnHeader("6000", range);
+                rangex3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.preface 3ed insert
+                string colL = cfcol.FindCodedColumnHeader("8000", xlWorkSheetpre.UsedRange);
+                string colM = cfcol.FindCodedColumnHeader("9000", xlWorkSheetpre.UsedRange);
+                Excel.Range rangeinsert3 = xlWorkSheetpre.UsedRange.get_Range(colL + "1", colM + "1") as Excel.Range;
+                rangeinsert3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist.calculs 3ed insert
+                Excel.Range rangexh3 = WorkSheetCalculs.Cells[1, 10] as Excel.Range;
+                //Jintao: change the formula from n to m
+                //rangexh3.EntireColumn.Replace("Hist.Preface!N", "Hist.Preface!M", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, false, Type.Missing, false, false);
+                rangexh3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                rangexh3.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //hist 3ed cut
+                xlWorkSheet.get_Range("I23", "I" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Cut(xlWorkSheet.get_Range("K23"));
+                //hist.refer 3ed cut
+                rangeEc.Cut(rangeEc3);
+                //hist.preface 3ed cut
+                colcorrectif1 = cf.FindCodedColumnHeader("82000-1000", range);
+                colcorrectif2 = cf.FindCodedColumnHeader("82000-2000", range);
+                xlWorkSheet.UsedRange.get_Range(colcorrectif1 + "1", colcorrectif1 + "1").EntireColumn.Replace("Hist.Refer!EX", "Hist.Refer!" + colcorrectif1, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                //hist 1st copy
+                xlWorkSheet.get_Range("E23", "E" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Copy(xlWorkSheet.get_Range("C23"));
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                colcorrectif1 = cf.FindCodedColumnHeader("82000-1000", range);
+                colcorrectif2 = cf.FindCodedColumnHeader("82000-2000", range);
+                Excel.Range rangex1c = xlWorkSheet.UsedRange.get_Range(colcorrectif1 + "1", colcorrectif2 + "1") as Excel.Range;
+                rangex1c.EntireColumn.Copy(xlWorkSheet.UsedRange.get_Range(insert1 + "1", insert12 + "1").EntireColumn);
+                //hist.refer 1st copy
+                rangeCc = xlWorkSheet2.UsedRange.get_Range(colC + "1", xlWorkSheet2.Cells[RowC, 3]) as Excel.Range;
+                rangeCc2 = xlWorkSheet2.UsedRange.get_Range(colD + "1", xlWorkSheet2.Cells[RowC, 4]) as Excel.Range;
+                rangeCc3 = xlWorkSheet2.UsedRange.get_Range(colE + "1", xlWorkSheet2.Cells[RowC, 5]) as Excel.Range;
+                rangeCc3.Copy(rangeCc2);
+                rangeCc3.Copy(rangeCc);
+                //hist.preface 1st copy
+                Excel.Range rangeOrigin1 = xlWorkSheetpre.Cells[1, 6] as Excel.Range;
+                Excel.Range rangeMiddle1 = xlWorkSheetpre.Cells[1, 5] as Excel.Range;
+                Excel.Range rangeReplace1 = xlWorkSheetpre.Cells[1, 4] as Excel.Range;
+                rangeOrigin1.EntireColumn.Copy(rangeReplace1.EntireColumn);
+                rangeReplace1.EntireColumn.Copy(rangeOrigin1.EntireColumn);
+                rangeReplace1.EntireColumn.Copy(rangeMiddle1.EntireColumn);
+                //hist.calculs 1st copy
+                rangexh1 = WorkSheetCalculs.Cells[1, 4] as Excel.Range;
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 3] as Excel.Range);
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 2] as Excel.Range);
+                //hist 2ed copy
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                xlWorkSheet.get_Range("H23", "H" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Copy(xlWorkSheet.get_Range("F23"));
+                colcorrectif1 = cf.FindCodedColumnHeader("82000-1000", range);
+                colcorrectif2 = cf.FindCodedColumnHeader("82000-2000", range);
+                rangex1c = xlWorkSheet.UsedRange.get_Range(colcorrectif1 + "1", colcorrectif2 + "1") as Excel.Range;
+                rangex1c.EntireColumn.Copy(xlWorkSheet.UsedRange.get_Range(insert2 + "1", insert22 + "1").EntireColumn);
+                //hist.refer 2ed copy
+                rangeDc = xlWorkSheet2.UsedRange.get_Range(colF + "1", xlWorkSheet2.Cells[RowC, 6]) as Excel.Range;
+                rangeDc2 = xlWorkSheet2.UsedRange.get_Range(colG + "1", xlWorkSheet2.Cells[RowC, 7]) as Excel.Range;
+                rangeDc3 = xlWorkSheet2.UsedRange.get_Range(colH + "1", xlWorkSheet2.Cells[RowC, 8]) as Excel.Range;
+                rangeDc3.Copy(rangeDc2);
+                rangeDc3.Copy(rangeDc);
+                //hist.preface 2ed copy
+                Excel.Range rangeOrigin2 = xlWorkSheetpre.Cells[1, 10] as Excel.Range;
+                Excel.Range rangeMiddle2 = xlWorkSheetpre.Cells[1, 9] as Excel.Range;
+                Excel.Range rangeReplace2 = xlWorkSheetpre.Cells[1, 8] as Excel.Range;
+                rangeOrigin2.EntireColumn.Copy(rangeReplace2.EntireColumn);
+                rangeReplace2.EntireColumn.Copy(rangeOrigin2.EntireColumn);
+                rangeReplace2.EntireColumn.Copy(rangeMiddle2.EntireColumn);
+                //hist.calculs 2ed copy
+                rangexh1 = WorkSheetCalculs.Cells[1, 8] as Excel.Range;
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 7] as Excel.Range);
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 6] as Excel.Range);
+                //hist 3ed copy
+                xlWorkSheet.get_Range("K23", "K" + (xlWorkSheet.UsedRange.Rows.Count - 1)).Copy(xlWorkSheet.get_Range("I23"));
+                cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                colcorrectif1 = cf.FindCodedColumnHeader("82000-1000", range);
+                colcorrectif2 = cf.FindCodedColumnHeader("82000-2000", range);
+                rangex1c = xlWorkSheet.UsedRange.get_Range(colcorrectif1 + "1", colcorrectif2 + "1") as Excel.Range;
+                rangex1c.EntireColumn.Copy(xlWorkSheet.UsedRange.get_Range(insert3 + "1", insert32 + "1").EntireColumn);
+                //hist.refer 3ed copy
+                rangeEc = xlWorkSheet2.UsedRange.get_Range(colI + "1", xlWorkSheet2.Cells[RowC, 9]) as Excel.Range;
+                rangeEc2 = xlWorkSheet2.UsedRange.get_Range(colJ + "1", xlWorkSheet2.Cells[RowC, 10]) as Excel.Range;
+                rangeEc3 = xlWorkSheet2.UsedRange.get_Range(colK + "1", xlWorkSheet2.Cells[RowC, 11]) as Excel.Range;
+                rangeEc3.Copy(rangeEc2);
+                rangeEc3.Copy(rangeEc);
+                //hist.preface 3ed copy
+                Excel.Range rangeOrigin3 = xlWorkSheetpre.Cells[1, 14] as Excel.Range;
+                Excel.Range rangeMiddle3 = xlWorkSheetpre.Cells[1, 13] as Excel.Range;
+                Excel.Range rangeReplace3 = xlWorkSheetpre.Cells[1, 12] as Excel.Range;
+                rangeOrigin3.EntireColumn.Copy(rangeReplace3.EntireColumn);
+                rangeReplace3.EntireColumn.Copy(rangeOrigin3.EntireColumn);
+                rangeReplace3.EntireColumn.Copy(rangeMiddle3.EntireColumn);
+                //hist.calculs 3ed copy
+                rangexh1 = WorkSheetCalculs.Cells[1, 12] as Excel.Range;
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 11] as Excel.Range);
+                rangexh1.EntireColumn.Copy(WorkSheetCalculs.Cells[1, 10] as Excel.Range);
+                //alex:new two columns
+                Excel.Range rangex4 = xlWorkSheet.Cells[1, 3] as Excel.Range;
+                string insert41 = cf.FindCodedColumnHeader("3000", range);
+                rangex4.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                Excel.Range rangex5 = xlWorkSheet.Cells[1, 3] as Excel.Range;
+                string insert51 = cf.FindCodedColumnHeader("3000", range);
+                rangex5.EntireColumn.Insert(Excel.XlInsertShiftDirection.xlShiftToRight, misValue);
+                //string insert4 = cf.FindCodedColumnHeader("83000-1000", range);
+                //string insert5 = cf.FindCodedColumnHeader("83000-2000", range);
+                //Excel.Range rangex2c = xlWorkSheet.UsedRange.get_Range(insert4 + "1", insert5 + "1") as Excel.Range;
+                //rangex2c.EntireColumn.Copy(xlWorkSheet.UsedRange.get_Range(insert41 + "1", insert51 + "1").EntireColumn);
+                Excel.Range rangex1cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 3] as Excel.Range;
+                Excel.Range rangex1cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 4] as Excel.Range;
+                Excel.Range rangex2cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 6] as Excel.Range;
+                Excel.Range rangex2cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 7] as Excel.Range;
+                Excel.Range rangex3cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 9] as Excel.Range;
+                Excel.Range rangex3cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 10] as Excel.Range;
+                Excel.Range rangex4cx1 = xlWorkSheet.Cells[range.Rows.Count - 1, 12] as Excel.Range;
+                Excel.Range rangex4cx2 = xlWorkSheet.Cells[range.Rows.Count - 1, 13] as Excel.Range;
+                rangex1cx1.Value2 = "";
+                rangex1cx2.Value2 = "";
+                rangex2cx1.Value2 = "";
+                rangex2cx2.Value2 = "";
+                rangex3cx1.Value2 = "";
+                rangex3cx2.Value2 = "";
+                rangex4cx1.Value2 = "";
+                rangex4cx2.Value2 = "";
+                //tester EE pour Histo.refer//et parcourir Historique
+                Excel.Range rangeRefer = xlWorkSheet2.UsedRange;
+                Excel.Range rangeHistorique = xlWorkSheet.UsedRange;
+                //petite corr
+                object[,] valuesRefer = (object[,])rangeRefer.Value2;
+                object[,] valuesHistorique = (object[,])rangeHistorique.Value2;
+                //int col3000, col4000, col5000, row821000;
+                //cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+                //col3000 = cf.FindCodedColumn("3000", range);
+                //col4000 = cf.FindCodedColumn("4000", range);
+                //col5000 = cf.FindCodedColumn("5000", range);
+                //row821000 = cf.FindCodedRow("821000", range);
+                //Excel.Range rangecc331 = xlWorkSheet.Cells[row821000, col3000] as Excel.Range;
+                //Excel.Range rangecc332 = xlWorkSheet.Cells[row821000, col3000 + 1] as Excel.Range;
+                //Excel.Range rangecc333 = xlWorkSheet.Cells[row821000, col3000 + 2] as Excel.Range;
+                //Excel.Range rangecc441 = xlWorkSheet.Cells[row821000, col4000] as Excel.Range;
+                //Excel.Range rangecc442 = xlWorkSheet.Cells[row821000, col4000 + 1] as Excel.Range;
+                //Excel.Range rangecc443 = xlWorkSheet.Cells[row821000, col4000 + 2] as Excel.Range;
+                //Excel.Range rangecc551 = xlWorkSheet.Cells[row821000, col5000] as Excel.Range;
+                //Excel.Range rangecc552 = xlWorkSheet.Cells[row821000, col5000 + 1] as Excel.Range;
+                //Excel.Range rangecc553 = xlWorkSheet.Cells[row821000, col5000 + 2] as Excel.Range;
+                //string formulax = rangecc551.Formula.ToString();
+                //rangecc331.Formula = formulax.Replace("I", "E");
+                //rangecc332.Formula = formulax.Replace("I", "F");
+                //rangecc333.Formula = formulax.Replace("I", "G");
+                //rangecc441.Formula = formulax.Replace("I", "H");
+                //rangecc442.Formula = formulax.Replace("I", "I");
+                //rangecc443.Formula = formulax.Replace("I", "J");
+                //rangecc551.Formula = formulax.Replace("I", "K");
+                //rangecc552.Formula = formulax.Replace("I", "L");
+                //rangecc553.Formula = formulax.Replace("I", "M");
 
-                for (int row = 1; row < rangeCompAnn.Rows.Count; row++)
-                {
-                    //Jintao: change the formula in V9 and apply this formula for the rest cell in this column. 01032016
-                    if (formulas[row, col] != null && formulas[row, col].ToString() != "" && formulas[row, col].ToString().Length > 4 && formulas[row, col].ToString().Substring(0, 8).ToUpper().Contains("=SI(ET("))
-                    {
-                        Excel.Range rangecell = xlWorkSheet.Cells[row, col] as Excel.Range;
-                        rangecell.FormulaR1C1 = rangecellx.FormulaR1C1;
-                        rangecell.Calculate();
-                    }
-                    //if (values[row, col] != null && values[row, col].ToString() != "")
-                    //{
-                    //    string x = values[row, col].ToString();
-                    //}
-
-                    //if (values[row, col] != null && values[row, col].ToString() != "" && values[row, col].ToString().Length > 4 && values[row, col].ToString().Substring(0, 4).ToUpper().Contains("=SI"))
-                    //{
-                    //    Excel.Range rangecell = xlWorkSheet.Cells[row, col] as Excel.Range;
-                    //    string tempF = rangecell.Value2.ToString().Replace("if(and", "si(et").Replace("SI(ET", "SI(ET");
-                    //    rangecell.Formula = tempF;
-                    //    rangecell.Calculate();
-                    //}
-                }
-                xlApp.Save(misValue);
+                ///////////////////////////////fermer EXCEL automatiquement apres modification?//////////////////////
+                xlWorkBook.SaveAs(prefaceNP, misValue, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlNoChange, misValue, misValue, misValue, misValue);
+                xlApp.DisplayAlerts = false;
+                xlWorkBook.Close(true, misValue, misValue);
                 xlApp.Quit();
                 releaseObject(xlWorkSheet);
                 releaseObject(xlWorkBook);
                 releaseObject(xlApp);
+                addcolumemaxvaluecellforhis();
             }
             catch (Exception ex)
             {
@@ -17633,6 +17826,54 @@ namespace TransformEXCEL
         private void panel2_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        //Jintao: change the formula for calculate the biggest value in the column. 26042016
+        private void addcolumemaxvaluecellforhis()
+        {
+            Excel.Application xlApp;
+            Excel.Workbook xlWorkBook;
+            object misValue = System.Reflection.Missing.Value;
+            xlApp = new Excel.ApplicationClass();
+            xlApp.Visible = false; xlApp.DisplayAlerts = false; xlApp.ScreenUpdating = false;
+            xlApp.DisplayAlerts = false;
+            xlWorkBook = xlApp.Workbooks.Open(prefaceNP, 0, false, 5, "", "", false, Excel.XlPlatform.xlWindows, "", true, false, 0, true, false, false);
+            Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item("Historique");
+            Excel.Range range = xlWorkSheet.UsedRange;
+            CodeFinder cf;
+            int col3000, col4000, col5000, row821000;
+            cf = new CodeFinder(xlWorkBook, xlWorkSheet);
+            col3000 = cf.FindCodedColumn("3000", range);
+            col4000 = cf.FindCodedColumn("4000", range);
+            col5000 = cf.FindCodedColumn("5000", range);
+            row821000 = cf.FindCodedRow("821000", range);
+            Excel.Range rangecc331 = xlWorkSheet.Cells[row821000, col3000] as Excel.Range;
+            Excel.Range rangecc332 = xlWorkSheet.Cells[row821000, col3000 + 1] as Excel.Range;
+            Excel.Range rangecc333 = xlWorkSheet.Cells[row821000, col3000 + 2] as Excel.Range;
+            Excel.Range rangecc441 = xlWorkSheet.Cells[row821000, col4000] as Excel.Range;
+            Excel.Range rangecc442 = xlWorkSheet.Cells[row821000, col4000 + 1] as Excel.Range;
+            Excel.Range rangecc443 = xlWorkSheet.Cells[row821000, col4000 + 2] as Excel.Range;
+            Excel.Range rangecc551 = xlWorkSheet.Cells[row821000, col5000] as Excel.Range;
+            Excel.Range rangecc552 = xlWorkSheet.Cells[row821000, col5000 + 1] as Excel.Range;
+            Excel.Range rangecc553 = xlWorkSheet.Cells[row821000, col5000 + 2] as Excel.Range;
+            string formulax = rangecc441.Formula.ToString();
+            rangecc331.Formula = formulax.Replace("F", "E");
+            rangecc332.Formula = formulax.Replace("F", "F");
+            rangecc333.Formula = formulax.Replace("F", "G");
+            rangecc441.Formula = formulax.Replace("F", "H");
+            rangecc442.Formula = formulax.Replace("F", "I");
+            rangecc443.Formula = formulax.Replace("F", "J");
+            rangecc551.Formula = formulax.Replace("F", "K");
+            rangecc552.Formula = formulax.Replace("F", "L");
+            rangecc553.Formula = formulax.Replace("F", "M");
+
+            xlWorkBook.SaveAs(prefaceNP, misValue, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlNoChange, misValue, misValue, misValue, misValue);
+            xlApp.DisplayAlerts = false;
+            xlWorkBook.Close(true, misValue, misValue);
+            xlApp.Quit();
+            releaseObject(xlWorkSheet);
+            releaseObject(xlWorkBook);
+            releaseObject(xlApp);
         }
     }
 }

@@ -32,9 +32,9 @@ namespace WindowsExcelVSOT
             comboBox1.SelectedIndex = 0;
             switch (number)
             {
-                case 1: item = "Tout"; comboBox2.Items.Add(item); item = "PATRICK-6800"; comboBox2.Items.Add(item); item = "DELL-E6000"; comboBox2.Items.Add(item); break;
-                case 2: item = "Tout"; comboBox2.Items.Add(item); item = "DELL-E6000"; comboBox2.Items.Add(item); item = "DELL-490"; comboBox2.Items.Add(item); break;
-                case 3: item = "Tout"; comboBox2.Items.Add(item); item = "PATRICK-6800"; comboBox2.Items.Add(item); item = "DELL-490"; comboBox2.Items.Add(item); break;
+                case 1: item = "Tout"; comboBox2.Items.Add(item); item = "PATRICK-6800"; comboBox2.Items.Add(item); item = "DELL-E6000"; comboBox2.Items.Add(item); item = "PATRICKSTUDIO17"; comboBox2.Items.Add(item); item = "POWEREDGE"; comboBox2.Items.Add(item); break;
+                case 2: item = "Tout"; comboBox2.Items.Add(item); item = "DELL-E6000"; comboBox2.Items.Add(item); item = "DELL-490"; comboBox2.Items.Add(item); item = "PATRICKSTUDIO17"; comboBox2.Items.Add(item); item = "POWEREDGE"; comboBox2.Items.Add(item); break;
+                case 3: item = "Tout"; comboBox2.Items.Add(item); item = "PATRICK-6800"; comboBox2.Items.Add(item); item = "DELL-490"; comboBox2.Items.Add(item); item = "PATRICKSTUDIO17"; comboBox2.Items.Add(item); item = "POWEREDGE"; comboBox2.Items.Add(item); break;
                 default: break;
             }
             comboBox2.SelectedIndex = 0;
@@ -42,38 +42,52 @@ namespace WindowsExcelVSOT
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            if (comboBox2.Text == "Tout")
+            try
             {
-                switch (number)
+                if (comboBox2.Text == "Tout")
                 {
-                    case 2: CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx"); break;
-                    case 1: CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx"); break;
-                    case 3: CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx"); break;
-                    default: break;
+                    switch (number)
+                    {
+                        case 2: CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\PATRICKSTUDIO17\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\POWEREDGE\d\ptw\style nota-pme.xlsx"); break;
+                        case 1: CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\PATRICKSTUDIO17\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\POWEREDGE\d\ptw\style nota-pme.xlsx"); break;
+                        case 3: CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\PATRICKSTUDIO17\d\ptw\style nota-pme.xlsx"); CopyFile(filepath, @"\\POWEREDGE\d\ptw\style nota-pme.xlsx"); break;
+                        default: break;
+                    }
                 }
+                else if (comboBox2.Text == "PATRICK-6800")
+                {
+                    CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx");
+                }
+                else if (comboBox2.Text == "DELL-E6000")
+                {
+                    CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx");
+                }
+                else if (comboBox2.Text == "DELL-490")
+                {
+                    CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx");
+                }
+                else if (comboBox2.Text == "PATRICKSTUDIO17")
+                {
+                    CopyFile(filepath, @"\\PATRICKSTUDIO17\d\ptw\style nota-pme.xlsx");
+                }
+                else if (comboBox2.Text == "POWEREDGE")
+                {
+                    CopyFile(filepath, @"\\POWEREDGE\d\ptw\style nota-pme.xlsx");
+                }
+                else
+                {
+                    MessageBox.Show("select at least one destination");
+                }
+                if (form1 != null)
+                {
+                    form1.setDateofStyle();
+                }
+                this.Close();
             }
-            else if (comboBox2.Text == "PATRICK-6800")
+            catch (Exception exc)
             {
-                CopyFile(filepath, @"\\PATRICK-6800\d\ptw\style nota-pme.xlsx");
+                MessageBox.Show(exc.ToString());
             }
-            else if (comboBox2.Text == "DELL-E6000")
-            {
-                CopyFile(filepath, @"\\DELL-E6000\d\ptw\style nota-pme.xlsx");
-            }
-            else if (comboBox2.Text == "DELL-490")
-            {
-                CopyFile(filepath, @"\\DELL-490\d\ptw\style nota-pme.xlsx");
-            }
-            else
-            {
-                MessageBox.Show("select at least one destination");
-            }
-            if (form1 != null)
-            {
-                form1.setDateofStyle();
-            }
-            this.Close();
         }
         private bool CopyFile(string filepath, string destination)
         {
